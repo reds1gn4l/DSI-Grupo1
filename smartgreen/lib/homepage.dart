@@ -21,6 +21,8 @@ class _HomePageState extends State<HomePage>
     super.dispose();
   }
 
+  // Tabs criadas para exemplificar a navegação e o layout para o pitch.
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,8 +32,8 @@ class _HomePageState extends State<HomePage>
           controller: _tabController,
           tabs: [
             Tab(icon: Icon(Icons.home), text: 'Home'),
-            Tab(icon: Icon(Icons.analytics), text: 'Analytics'),
-            Tab(icon: Icon(Icons.settings), text: 'Settings'),
+            Tab(icon: Icon(Icons.store), text: 'Loja'),
+            Tab(icon: Icon(Icons.settings), text: 'Configurações'),
           ],
         ),
       ),
@@ -39,8 +41,8 @@ class _HomePageState extends State<HomePage>
         controller: _tabController,
         children: [
           Center(child: Text('Home Screen')),
-          Center(child: Text('Analytics Screen')),
-          Center(child: Text('Settings Screen')),
+          Center(child: Text('Loja Screen')),
+          Center(child: Text('Config Screen')),
         ],
       ),
     );
