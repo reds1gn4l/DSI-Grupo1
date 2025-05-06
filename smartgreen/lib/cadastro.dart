@@ -66,12 +66,7 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
           child: ListView(
             children: [
               // Logo
-              Center(
-                child: Image.asset(
-                  'assets/smartgreen.png', // Replace with your logo asset path
-                  height: 150,
-                ),
-              ),
+              Center(child: Image.asset('assets/smartgreen.png', height: 150)),
               SizedBox(height: 40),
               TextFormField(
                 controller: _nameController,
@@ -98,6 +93,8 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
                   if (value == null || value.isEmpty) {
                     return 'Por favor, insira seu e-mail';
                   }
+
+                  // Regex para e-mail. "^" = começo da string regex, "[^@]+" = qualquer caractere que não seja @, "@" = caractere @, "[^@]+" = qualquer caractere que não seja @, "\." = caractere ponto ".", "[^@]+" = qualquer caractere que não seja @, "$" = final da string regex.
                   if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
                     return 'Por favor, insira um e-mail válido';
                   }
