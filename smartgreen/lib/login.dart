@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'cadastro.dart'; // Import the cadastro.dart file
+import 'cadastro.dart';
+import 'homepage.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -14,15 +15,9 @@ class LoginScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Logo
-            Center(
-              child: Image.asset(
-                'assets/smartgreen.png', // Replace with your logo asset path
-                height: 150,
-              ),
-            ),
+            Center(child: Image.asset('assets/smartgreen.png', height: 150)),
             SizedBox(height: 40),
 
-            // Email TextField
             TextField(
               decoration: InputDecoration(
                 labelText: 'E-mail',
@@ -32,7 +27,6 @@ class LoginScreen extends StatelessWidget {
             ),
             SizedBox(height: 16),
 
-            // Password TextField
             TextField(
               decoration: InputDecoration(
                 labelText: 'Senha',
@@ -42,10 +36,9 @@ class LoginScreen extends StatelessWidget {
             ),
             SizedBox(height: 16),
 
-            // Forgot Password Button
             TextButton(
               onPressed: () {
-                // Handle forgot password action
+                // IRÁ TER UMA MUDANÇA DE TELA AQUI
               },
               child: Text(
                 'Esqueceu a senha?',
@@ -54,16 +47,17 @@ class LoginScreen extends StatelessWidget {
             ),
             SizedBox(height: 16),
 
-            // Login Button
             ElevatedButton(
               onPressed: () {
-                // Handle login action
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => HomePage()),
+                );
               },
               child: Text('Login'),
             ),
             SizedBox(height: 16),
 
-            // Create Account Button
             OutlinedButton(
               onPressed: () {
                 Navigator.push(

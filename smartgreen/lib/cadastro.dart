@@ -1,4 +1,7 @@
+// Páginas de cadastro de usuário e endereço. Adicionei tudo em um único arquivo pois ambos estão relacionados ao cadastro de informações.
+
 import 'package:flutter/material.dart';
+import 'package:smartgreen/homepage.dart';
 
 class UserRegistrationPage extends StatefulWidget {
   @override
@@ -31,7 +34,7 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
                       ),
                     );
                   },
-                  child: Text('No'),
+                  child: Text('Agora não'),
                 ),
                 TextButton(
                   onPressed: () {
@@ -44,7 +47,7 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
                       ),
                     );
                   },
-                  child: Text('Yes'),
+                  child: Text('Sim'),
                 ),
               ],
             ),
@@ -63,12 +66,7 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
           child: ListView(
             children: [
               // Logo
-              Center(
-                child: Image.asset(
-                  'assets/smartgreen.png', // Replace with your logo asset path
-                  height: 150,
-                ),
-              ),
+              Center(child: Image.asset('assets/smartgreen.png', height: 150)),
               SizedBox(height: 40),
               TextFormField(
                 controller: _nameController,
@@ -95,6 +93,8 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
                   if (value == null || value.isEmpty) {
                     return 'Por favor, insira seu e-mail';
                   }
+
+                  // Regex para e-mail. "^" = começo da string regex, "[^@]+" = qualquer caractere que não seja @, "@" = caractere @, "[^@]+" = qualquer caractere que não seja @, "\." = caractere ponto ".", "[^@]+" = qualquer caractere que não seja @, "$" = final da string regex.
                   if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
                     return 'Por favor, insira um e-mail válido';
                   }
@@ -155,13 +155,6 @@ class AddressRegistrationPage extends StatelessWidget {
   final _cityController = TextEditingController();
   final _stateController = TextEditingController();
 
-  void _submitAddressForm(BuildContext context) {
-    if (_formKey.currentState!.validate()) {
-      // Navigate to the homepage
-      Navigator.pushReplacementNamed(context, '/homepage.dart');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -184,6 +177,7 @@ class AddressRegistrationPage extends StatelessWidget {
                   if (value == null || value.isEmpty) {
                     return 'Por favor, insira seu CEP';
                   }
+                  // Regex para CEP. "\d{5}" = 5 dígitos, "-?" = opcional hífen, "\d{3}" = 3 dígitos, "^$" = começo e final da string regex, respectivamente.
                   if (!RegExp(r'^\d{5}-?\d{3}$').hasMatch(value)) {
                     return 'Por favor, insira um CEP válido';
                   }
@@ -242,7 +236,12 @@ class AddressRegistrationPage extends StatelessWidget {
               ),
               SizedBox(height: 40),
               ElevatedButton(
-                onPressed: () => _submitAddressForm(context),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => HomePage()),
+                  );
+                },
                 child: Text('Finalizar Cadastro'),
               ),
             ],
