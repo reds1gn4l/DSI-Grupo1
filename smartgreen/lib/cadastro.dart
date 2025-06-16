@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:smartgreen/homepage.dart';
 
 class UserRegistrationPage extends StatefulWidget {
+  const UserRegistrationPage({super.key});
+
   @override
   _UserRegistrationPageState createState() => _UserRegistrationPageState();
 }
@@ -154,6 +156,8 @@ class AddressRegistrationPage extends StatelessWidget {
   final _address2Controller = TextEditingController();
   final _cityController = TextEditingController();
   final _stateController = TextEditingController();
+
+  AddressRegistrationPage({super.key});
 
   @override
   Widget build(BuildContext context) {
