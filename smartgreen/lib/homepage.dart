@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../screens/catalog_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,16 +24,15 @@ class _HomePageState extends State<HomePage>
     super.dispose();
   }
 
-  // Tabs criadas para exemplificar a navegação e o layout para o pitch.
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('SmartGreen'),
+        title: const Text('SmartGreen'), // Adicionado const
         bottom: TabBar(
           controller: _tabController,
-          tabs: [
+          tabs: const [
+            // Adicionado const
             Tab(icon: Icon(Icons.home), text: 'Home'),
             Tab(icon: Icon(Icons.store), text: 'Loja'),
             Tab(icon: Icon(Icons.settings), text: 'Configurações'),
@@ -42,9 +42,10 @@ class _HomePageState extends State<HomePage>
       body: TabBarView(
         controller: _tabController,
         children: [
-          Center(child: Text('Home Screen')),
-          Center(child: Text('Loja Screen')),
-          Center(child: Text('Config Screen')),
+          // Adicionado const (opcional)
+          const Center(child: Text('Home Screen')),
+          CatalogPage(),
+          const Center(child: Text('Config Screen')),
         ],
       ),
     );
