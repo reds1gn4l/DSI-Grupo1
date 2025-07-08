@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/address_service.dart';
 import '../models/address.dart';
 import 'new_address_page.dart';
+import 'map_page.dart'; // Adicione esta importação para o MapPage
 
 class AddressSelectionPage extends StatefulWidget {
   const AddressSelectionPage({super.key});
@@ -52,6 +53,18 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                           selectedAddressId = value.toString();
                         });
                       },
+                      // Novo botão de mapa adicionado aqui
+                      secondary: IconButton(
+                        icon: const Icon(Icons.map),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => MapPage(address: address),
+                            ),
+                          );
+                        },
+                      ),
                     );
                   },
                 ),
@@ -78,7 +91,6 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                           selectedAddressId == null
                               ? null
                               : () {
-                                // Aqui enviaremos o endereço para a tela de pagamento
                                 final selected = addresses.firstWhere(
                                   (element) => element.id == selectedAddressId,
                                 );
