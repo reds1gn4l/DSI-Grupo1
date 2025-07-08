@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smartgreen/globals.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -42,7 +43,7 @@ class _HomePageState extends State<HomePage>
       body: TabBarView(
         controller: _tabController,
         children: [
-          Center(child: Text('Home Screen')),
+          Center(child: Text('Olá, ${(currentUser?.name ?? "usuário")}!')),
           Center(child: Text('Loja Screen')),
           Center(child: Text('Config Screen')),
         ],

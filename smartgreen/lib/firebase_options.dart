@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'smartgreen-1ab20.firebasestorage.app',
     measurementId: 'G-MV5NYFKNP8',
   );
+
 }

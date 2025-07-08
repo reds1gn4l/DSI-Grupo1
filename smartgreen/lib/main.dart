@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:smartgreen/login.dart';
+import 'package:smartgreen/cadastro.dart';
+import 'package:smartgreen/homepage.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+    );
+
+  await FirebaseAppCheck.instance.activate(
+    webProvider: null,
+    androidProvider: AndroidProvider.debug,
+    appleProvider: AppleProvider.debug,
+    );
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -19,7 +28,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
       ),
-      home: LoginScreen(),
+      initialRoute: 'login.dart',
+      routes: {
+        'login.dart': (context) => LoginScreen(),
+        'cadastro.dart': (context) => UserRegistrationPage(),
+        'homepage.dart': (context) => HomePage(),
+        },
     );
   }
 }
