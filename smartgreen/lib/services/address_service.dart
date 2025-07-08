@@ -29,4 +29,22 @@ class AddressService {
         .collection('user_addresses')
         .add(address.toMap());
   }
+
+  Future<void> deleteAddress(String addressId) async {
+    await _db
+        .collection('addresses')
+        .doc(userId)
+        .collection('user_addresses')
+        .doc(addressId)
+        .delete();
+  }
+
+  Future<void> updateAddress(Address address) async {
+    await _db
+        .collection('addresses')
+        .doc(userId)
+        .collection('user_addresses')
+        .doc(address.id)
+        .update(address.toMap());
+  }
 }

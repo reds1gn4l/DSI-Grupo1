@@ -140,16 +140,16 @@ class _MapPageState extends State<MapPage> {
                 ),
               )
               : _buildMap(),
-      floatingActionButton:
-          _location != null
-              ? FloatingActionButton(
-                onPressed: () {
-                  // Ação para usar esta localização
-                },
-                backgroundColor: Colors.green,
-                child: const Icon(Icons.check),
-              )
-              : null,
+      // floatingActionButton:
+      //     _location != null
+      //         ? FloatingActionButton(
+      //           onPressed: () {
+      //             // Ação para usar esta localização
+      //           },
+      //           backgroundColor: Colors.green,
+      //           child: const Icon(Icons.check),
+      //         )
+      //         : null,
     );
   }
 }

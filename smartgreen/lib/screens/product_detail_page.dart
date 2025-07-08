@@ -47,8 +47,16 @@ class ProductDetailPage extends StatelessWidget {
                   cart.addToCart(product);
 
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Produto adicionado ao carrinho!'),
+                    SnackBar(
+                      content: const Text('Produto adicionado ao carrinho!'),
+                      duration: const Duration(seconds: 1),
+                      action: SnackBarAction(
+                        label: 'Fechar',
+                        textColor: Colors.yellow,
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        },
+                      ),
                     ),
                   );
                 },

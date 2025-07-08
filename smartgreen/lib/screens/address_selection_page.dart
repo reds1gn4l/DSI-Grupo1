@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/address_service.dart';
 import '../models/address.dart';
-import 'new_address_page.dart';
-import 'map_page.dart'; // Adicione esta importação para o MapPage
+import 'address_form_page.dart';
+import 'map_page.dart';
 
 class AddressSelectionPage extends StatefulWidget {
   const AddressSelectionPage({super.key});
@@ -16,9 +16,7 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
 
   @override
   Widget build(BuildContext context) {
-    final addressService = AddressService(
-      userId: 'teste',
-    ); // substitua pelo UID real no futuro
+    final addressService = AddressService(userId: 'teste');
 
     return Scaffold(
       appBar: AppBar(title: const Text('Selecione um Endereço')),
@@ -41,29 +39,85 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                   itemCount: addresses.length,
                   itemBuilder: (context, index) {
                     final address = addresses[index];
-                    return RadioListTile(
+                    return ListTile(
+                      onTap: () {
+                        setState(() {
+                          selectedAddressId = address.id;
+                        });
+                      },
                       title: Text('${address.street}, ${address.city}'),
                       subtitle: Text(
                         'CEP: ${address.cep}\n${address.complement}',
                       ),
-                      value: address.id,
-                      groupValue: selectedAddressId,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedAddressId = value.toString();
-                        });
-                      },
-                      // Novo botão de mapa adicionado aqui
-                      secondary: IconButton(
-                        icon: const Icon(Icons.map),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => MapPage(address: address),
-                            ),
-                          );
+                      leading: Radio<String>(
+                        value: address.id,
+                        groupValue: selectedAddressId,
+                        onChanged: (value) {
+                          setState(() {
+                            selectedAddressId = value;
+                          });
                         },
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.orange),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (_) => AddressFormPage(address: address),
+                                ),
+                              );
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () async {
+                              final confirm = await showDialog(
+                                context: context,
+                                builder:
+                                    (_) => AlertDialog(
+                                      title: const Text('Excluir endereço'),
+                                      content: const Text(
+                                        'Deseja realmente excluir este endereço?',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed:
+                                              () =>
+                                                  Navigator.pop(context, false),
+                                          child: const Text('Cancelar'),
+                                        ),
+                                        TextButton(
+                                          onPressed:
+                                              () =>
+                                                  Navigator.pop(context, true),
+                                          child: const Text('Excluir'),
+                                        ),
+                                      ],
+                                    ),
+                              );
+
+                              if (confirm == true) {
+                                await addressService.deleteAddress(address.id);
+                              }
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.map, color: Colors.blue),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => MapPage(address: address),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       ),
                     );
                   },
@@ -80,7 +134,8 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const NewAddressPage(),
+                            builder:
+                                (_) => const AddressFormPage(address: null),
                           ),
                         );
                       },

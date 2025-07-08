@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import '../models/address.dart';
 import '../services/address_service.dart';
 
-class NewAddressPage extends StatefulWidget {
-  const NewAddressPage({super.key});
+class AddressFormPage extends StatefulWidget {
+  final Address? address; // Parâmetro opcional para edição
+
+  const AddressFormPage({super.key, this.address}); // Adicione este parâmetro
 
   @override
-  State<NewAddressPage> createState() => _NewAddressPageState();
+  State<AddressFormPage> createState() => _AddressFormPageState(); // Corrija o nome do State
 }
 
-class _NewAddressPageState extends State<NewAddressPage> {
+class _AddressFormPageState extends State<AddressFormPage> {
   final _formKey = GlobalKey<FormState>();
   final streetController = TextEditingController();
   final cityController = TextEditingController();
@@ -17,11 +19,26 @@ class _NewAddressPageState extends State<NewAddressPage> {
   final complementController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    // Preenche os campos se estiver editando
+    if (widget.address != null) {
+      streetController.text = widget.address!.street;
+      cityController.text = widget.address!.city;
+      cepController.text = widget.address!.cep;
+      complementController.text = widget.address!.complement;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final addressService = AddressService(userId: 'teste');
+    final isEditing = widget.address != null; // Verifica modo edição
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Novo Endereço')),
+      appBar: AppBar(
+        title: Text(isEditing ? 'Editar Endereço' : 'Novo Endereço'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -53,21 +70,27 @@ class _NewAddressPageState extends State<NewAddressPage> {
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     final address = Address(
-                      id: '',
+                      id:
+                          widget.address?.id ??
+                          '', // Mantém ID se estiver editando
                       street: streetController.text,
                       city: cityController.text,
                       cep: cepController.text,
                       complement: complementController.text,
                     );
-                    await addressService.addAddress(address);
 
-                    // Verificação crítica: contexto ainda válido?
-                    if (context.mounted) {
-                      Navigator.pop(context);
+                    if (isEditing) {
+                      await addressService.updateAddress(address);
+                    } else {
+                      await addressService.addAddress(address);
                     }
+
+                    if (context.mounted) Navigator.pop(context);
                   }
                 },
-                child: const Text('Salvar Endereço'),
+                child: Text(
+                  isEditing ? 'Salvar Alterações' : 'Salvar Endereço',
+                ),
               ),
             ],
           ),
