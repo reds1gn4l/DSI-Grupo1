@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/cart_service.dart';
 import '../models/cart_item.dart';
+import 'address_selection_page.dart';
+import 'payment_page.dart';
 
 class CartPage extends StatelessWidget {
   const CartPage({super.key});
@@ -75,14 +77,26 @@ class CartPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 10),
                         ElevatedButton(
-                          onPressed: () {
-                            // aqui futuramente vamos redirecionar para endereço/pagamento
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Compra confirmada!'),
+                          onPressed: () async {
+                            final selectedAddress = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AddressSelectionPage(),
                               ),
                             );
-                            cart.clearCart();
+
+                            // Verificação correta e segura
+                            if (context.mounted && selectedAddress != null) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (_) => PaymentPage(
+                                        selectedAddress: selectedAddress,
+                                      ),
+                                ),
+                              );
+                            }
                           },
                           child: const Text('Finalizar Compra'),
                         ),
