@@ -42,6 +42,18 @@ android {
     }
 }
 
+dependencies {
+    // BOM (opcional, mas recomendado para manter versões alinhadas)
+    implementation(platform("com.google.firebase:firebase-bom:32.0.0"))
+
+    // Auth
+    implementation("com.google.firebase:firebase-auth-ktx")
+    // Firestore (se for usar)
+    implementation("com.google.firebase:firebase-firestore-ktx")
+
+    // … suas outras dependências
+}
+
 flutter {
     source = "../.."
 }
