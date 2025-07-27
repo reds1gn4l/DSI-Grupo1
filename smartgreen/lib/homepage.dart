@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../screens/catalog_page.dart';
+import '../screens/supply_list_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -28,11 +29,10 @@ class _HomePageState extends State<HomePage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SmartGreen'), // Adicionado const
+        title: const Text('SmartGreen'),
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            // Adicionado const
             Tab(icon: Icon(Icons.home), text: 'Home'),
             Tab(icon: Icon(Icons.store), text: 'Loja'),
             Tab(icon: Icon(Icons.settings), text: 'Configurações'),
@@ -42,8 +42,18 @@ class _HomePageState extends State<HomePage>
       body: TabBarView(
         controller: _tabController,
         children: [
-          // Adicionado const (opcional)
-          const Center(child: Text('Home Screen')),
+          Center(
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.inventory),
+              label: const Text('Inventário de Insumos'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SupplyListPage()),
+                );
+              },
+            ),
+          ),
           CatalogPage(),
           const Center(child: Text('Config Screen')),
         ],
