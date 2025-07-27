@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import '../models/address.dart';
 import '../services/address_service.dart';
+import 'map_page.dart'; // Adicionado
 
 class AddressFormPage extends StatefulWidget {
-  final Address? address; // Parâmetro opcional para edição
+  final Address? address;
 
-  const AddressFormPage({super.key, this.address}); // Adicione este parâmetro
+  const AddressFormPage({super.key, this.address});
 
   @override
-  State<AddressFormPage> createState() => _AddressFormPageState(); // Corrija o nome do State
+  State<AddressFormPage> createState() => _AddressFormPageState();
 }
 
 class _AddressFormPageState extends State<AddressFormPage> {
@@ -21,7 +22,6 @@ class _AddressFormPageState extends State<AddressFormPage> {
   @override
   void initState() {
     super.initState();
-    // Preenche os campos se estiver editando
     if (widget.address != null) {
       streetController.text = widget.address!.street;
       cityController.text = widget.address!.city;
@@ -33,7 +33,7 @@ class _AddressFormPageState extends State<AddressFormPage> {
   @override
   Widget build(BuildContext context) {
     final addressService = AddressService(userId: 'teste');
-    final isEditing = widget.address != null; // Verifica modo edição
+    final isEditing = widget.address != null;
 
     return Scaffold(
       appBar: AppBar(
@@ -43,36 +43,67 @@ class _AddressFormPageState extends State<AddressFormPage> {
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: Column(
+          child: ListView(
             children: [
               TextFormField(
                 controller: streetController,
                 decoration: const InputDecoration(labelText: 'Rua'),
                 validator: (value) => value!.isEmpty ? 'Informe a rua' : null,
               ),
+              const SizedBox(height: 10),
               TextFormField(
                 controller: cityController,
                 decoration: const InputDecoration(labelText: 'Cidade'),
                 validator:
                     (value) => value!.isEmpty ? 'Informe a cidade' : null,
               ),
+              const SizedBox(height: 10),
               TextFormField(
                 controller: cepController,
                 decoration: const InputDecoration(labelText: 'CEP'),
                 validator: (value) => value!.isEmpty ? 'Informe o CEP' : null,
               ),
-              TextFormField(
-                controller: complementController,
-                decoration: const InputDecoration(labelText: 'Complemento'),
+              const SizedBox(height: 10),
+
+              /// BOTÃO PARA ABRIR O MAPA E EDITAR O CEP
+              ElevatedButton.icon(
+                icon: const Icon(Icons.map),
+                label: const Text('Ver/Editar no Mapa'),
+                onPressed: () async {
+                  final updatedAddress = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (_) => MapPage(
+                            address: Address(
+                              id: widget.address?.id ?? '',
+                              street: streetController.text,
+                              city: cityController.text,
+                              cep: cepController.text,
+                              complement: complementController.text,
+                            ),
+                          ),
+                    ),
+                  );
+
+                  if (updatedAddress != null && updatedAddress is Address) {
+                    setState(() {
+                      streetController.text = updatedAddress.street;
+                      cityController.text = updatedAddress.city;
+                      cepController.text = updatedAddress.cep;
+                    });
+                  }
+                },
               ),
+
               const SizedBox(height: 20),
+
+              /// BOTÃO DE SALVAR
               ElevatedButton(
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     final address = Address(
-                      id:
-                          widget.address?.id ??
-                          '', // Mantém ID se estiver editando
+                      id: widget.address?.id ?? '',
                       street: streetController.text,
                       city: cityController.text,
                       cep: cepController.text,

@@ -1,12 +1,8 @@
-// Correções:
-// 1. Importar o pacote 'url_launcher' para usar canLaunchUrl e launchUrl
-// 2. Substituir 'AttributionWidget.defaultWidget' por 'RichAttributionWidget'
-
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:url_launcher/url_launcher.dart'; // <--- IMPORTANTE
+import 'package:url_launcher/url_launcher.dart';
 import '../models/address.dart';
 
 class MapPage extends StatefulWidget {
@@ -23,81 +19,156 @@ class _MapPageState extends State<MapPage> {
   bool _isLoading = true;
   String? _errorMessage;
 
+  final streetController = TextEditingController();
+  final cityController = TextEditingController();
+  final cepController = TextEditingController();
+
+  final mapController = MapController();
+
   @override
   void initState() {
     super.initState();
-    _loadLocation();
+    streetController.text = widget.address.street;
+    cityController.text = widget.address.city;
+    cepController.text = widget.address.cep;
+    _loadInitialLocation();
   }
 
-  Future<void> _loadLocation() async {
-    try {
-      final fullAddress =
-          '${widget.address.street}, ${widget.address.city}, ${widget.address.cep}';
-      final results = await locationFromAddress(fullAddress);
+  Future<void> _loadInitialLocation() async {
+    final fullAddress =
+        '${widget.address.street}, ${widget.address.city}, ${widget.address.cep}';
 
-      if (results.isEmpty) {
+    try {
+      final results = await locationFromAddress(fullAddress);
+      if (results.isNotEmpty) {
+        setState(() {
+          _location = LatLng(results.first.latitude, results.first.longitude);
+          _isLoading = false;
+        });
+      } else {
         setState(() {
           _errorMessage = 'Endereço não encontrado';
           _isLoading = false;
         });
-        return;
       }
-
-      setState(() {
-        _location = LatLng(results.first.latitude, results.first.longitude);
-        _isLoading = false;
-      });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Erro ao carregar localização: ${e.toString()}';
+        _errorMessage = 'Erro ao localizar: ${e.toString()}';
         _isLoading = false;
       });
     }
   }
 
-  Widget _buildMap() {
-    return FlutterMap(
-      options: MapOptions(
-        initialCenter: _location!,
-        initialZoom: 15.0,
-        minZoom: 5,
-        maxZoom: 18,
+  Future<void> _updateAddressFromCoordinates(LatLng latLng) async {
+    try {
+      final placemarks = await placemarkFromCoordinates(
+        latLng.latitude,
+        latLng.longitude,
+      );
+
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+
+        setState(() {
+          streetController.text = place.street ?? '';
+          cityController.text = place.locality ?? '';
+          cepController.text = place.postalCode ?? '';
+          _location = latLng;
+        });
+      }
+    } catch (e) {
+      debugPrint('Erro ao buscar endereço por coordenada: $e');
+    }
+  }
+
+  Widget _buildFormFields() {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        children: [
+          TextField(
+            controller: streetController,
+            decoration: const InputDecoration(
+              labelText: 'Rua',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: cityController,
+            decoration: const InputDecoration(
+              labelText: 'Cidade',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: cepController,
+            decoration: const InputDecoration(
+              labelText: 'CEP',
+              border: OutlineInputBorder(),
+            ),
+            keyboardType: TextInputType.number,
+          ),
+        ],
       ),
-      children: [
-        TileLayer(
-          urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-          subdomains: const ['a', 'b', 'c'],
-          userAgentPackageName: 'com.example.smartgreen',
-          maxZoom: 19,
+    );
+  }
+
+  Widget _buildMap() {
+    return Expanded(
+      child: FlutterMap(
+        mapController: mapController,
+        options: MapOptions(
+          initialCenter: _location!,
+          initialZoom: 15.0,
+          onTap: (tapPosition, latLng) {
+            _updateAddressFromCoordinates(latLng);
+          },
         ),
-        MarkerLayer(
-          markers: [
-            Marker(
-              point: _location!,
-              width: 60,
-              height: 60,
-              child: const Icon(
-                Icons.location_pin,
-                color: Colors.red,
-                size: 50,
+        children: [
+          TileLayer(
+            urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            subdomains: const ['a', 'b', 'c'],
+            userAgentPackageName: 'com.example.smartgreen',
+            maxZoom: 19,
+          ),
+          if (_location != null)
+            MarkerLayer(
+              markers: [
+                Marker(
+                  point: _location!,
+                  width: 60,
+                  height: 60,
+                  child: GestureDetector(
+                    onPanUpdate: (details) {
+                      final newCenter = mapController.camera.center;
+                      _updateAddressFromCoordinates(newCenter);
+                    },
+                    child: const Icon(
+                      Icons.location_on,
+                      color: Colors.red,
+                      size: 50,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          RichAttributionWidget(
+            attributions: [
+              TextSourceAttribution(
+                'OpenStreetMap contributors',
+                onTap: () async {
+                  final url = Uri.parse('https://openstreetmap.org/copyright');
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(url);
+                  }
+                },
               ),
-            ),
-          ],
-        ),
-        RichAttributionWidget(
-          attributions: [
-            TextSourceAttribution(
-              'OpenStreetMap contributors',
-              onTap: () async {
-                final url = Uri.parse('https://openstreetmap.org/copyright');
-                if (await canLaunchUrl(url)) {
-                  await launchUrl(url);
-                }
-              },
-            ),
-          ],
-        ),
-      ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -105,51 +176,37 @@ class _MapPageState extends State<MapPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Localização no Mapa'),
+        title: const Text('Editar Localização'),
         centerTitle: true,
       ),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _errorMessage != null
-              ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        size: 50,
-                        color: Colors.red,
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        _errorMessage!,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 18),
-                      ),
-                      const SizedBox(height: 20),
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Tentar novamente'),
-                        onPressed: _loadLocation,
-                      ),
-                    ],
+              ? Center(child: Text(_errorMessage!))
+              : Column(
+                children: [
+                  _buildFormFields(),
+                  _buildMap(),
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.check),
+                      label: const Text('Usar este endereço'),
+                      onPressed: () {
+                        final updatedAddress = Address(
+                          id: widget.address.id,
+                          street: streetController.text,
+                          city: cityController.text,
+                          cep: cepController.text,
+                          complement: widget.address.complement,
+                        );
+                        Navigator.pop(context, updatedAddress);
+                      },
+                    ),
                   ),
-                ),
-              )
-              : _buildMap(),
-      // floatingActionButton:
-      //     _location != null
-      //         ? FloatingActionButton(
-      //           onPressed: () {
-      //             // Ação para usar esta localização
-      //           },
-      //           backgroundColor: Colors.green,
-      //           child: const Icon(Icons.check),
-      //         )
-      //         : null,
+                ],
+              ),
     );
   }
 }
