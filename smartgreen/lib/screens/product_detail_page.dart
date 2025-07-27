@@ -18,10 +18,16 @@ class ProductDetailPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child: Image.network(
-                product.imageUrl,
-                height: 200,
-                fit: BoxFit.cover,
+              child: Hero(
+                tag: product.id,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.network(
+                    product.imageUrl,
+                    height: 200,
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 16),
