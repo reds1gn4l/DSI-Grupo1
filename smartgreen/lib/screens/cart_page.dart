@@ -24,40 +24,104 @@ class CartPage extends StatelessWidget {
                       itemCount: cart.items.length,
                       itemBuilder: (context, index) {
                         CartItem item = cart.items[index];
-                        return ListTile(
-                          leading: Image.network(
-                            item.product.imageUrl,
-                            width: 50,
+                        final price = item.product.price;
+                        final quantity = item.quantity;
+                        final subtotal = price * quantity;
+
+                        return Card(
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
                           ),
-                          title: Text(item.product.name),
-                          subtitle: Text(
-                            'R\$ ${item.product.price.toStringAsFixed(2)}',
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.remove),
-                                onPressed: () {
-                                  int newQty = item.quantity - 1;
-                                  if (newQty <= 0) {
-                                    cart.removeFromCart(item.product);
-                                  } else {
-                                    cart.updateQuantity(item.product, newQty);
-                                  }
-                                },
-                              ),
-                              Text('${item.quantity}'),
-                              IconButton(
-                                icon: const Icon(Icons.add),
-                                onPressed: () {
-                                  cart.updateQuantity(
-                                    item.product,
-                                    item.quantity + 1,
-                                  );
-                                },
-                              ),
-                            ],
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    item.product.imageUrl,
+                                    width: 70,
+                                    height: 70,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        item.product.name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'R\$ ${price.toStringAsFixed(2)}',
+                                        style: TextStyle(
+                                          color: Colors.green[700],
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'Subtotal:',
+                                            style: TextStyle(fontSize: 13),
+                                          ),
+                                          Text(
+                                            'R\$ ${price.toStringAsFixed(2)} x $quantity = R\$ ${subtotal.toStringAsFixed(2)}',
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.remove),
+                                      onPressed: () {
+                                        int newQty = quantity - 1;
+                                        if (newQty <= 0) {
+                                          cart.removeFromCart(item.product);
+                                        } else {
+                                          cart.updateQuantity(
+                                            item.product,
+                                            newQty,
+                                          );
+                                        }
+                                      },
+                                    ),
+                                    Text('$quantity'),
+                                    IconButton(
+                                      icon: const Icon(Icons.add),
+                                      onPressed: () {
+                                        cart.updateQuantity(
+                                          item.product,
+                                          quantity + 1,
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       },
@@ -85,7 +149,6 @@ class CartPage extends StatelessWidget {
                               ),
                             );
 
-                            // Verificação correta e segura
                             if (context.mounted && selectedAddress != null) {
                               Navigator.push(
                                 context,
@@ -98,7 +161,61 @@ class CartPage extends StatelessWidget {
                               );
                             }
                           },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            textStyle: const TextStyle(fontSize: 16),
+                          ),
                           child: const Text('Finalizar Compra'),
+                        ),
+                        const SizedBox(height: 10),
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.delete, color: Colors.white),
+                          label: const Text('Esvaziar Carrinho'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            textStyle: const TextStyle(fontSize: 16),
+                          ),
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder:
+                                  (_) => AlertDialog(
+                                    title: const Text('Confirmar ação'),
+                                    content: const Text(
+                                      'Deseja realmente esvaziar o carrinho?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        child: const Text('Cancelar'),
+                                        onPressed:
+                                            () => Navigator.of(
+                                              context,
+                                            ).pop(false),
+                                      ),
+                                      TextButton(
+                                        child: const Text('Esvaziar'),
+                                        onPressed:
+                                            () =>
+                                                Navigator.of(context).pop(true),
+                                      ),
+                                    ],
+                                  ),
+                            );
+
+                            if (confirm == true) {
+                              cart.clearCart();
+                            }
+                          },
                         ),
                       ],
                     ),
