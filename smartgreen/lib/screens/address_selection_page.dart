@@ -3,6 +3,7 @@ import '../services/address_service.dart';
 import '../models/address.dart';
 import 'address_form_page.dart';
 import 'map_page.dart';
+import '../widgets/custom_button.dart';
 
 class AddressSelectionPage extends StatefulWidget {
   const AddressSelectionPage({super.key});
@@ -19,7 +20,10 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
     final addressService = AddressService(userId: 'teste');
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Selecione um Endereço')),
+      appBar: AppBar(
+        title: const Text('Selecione um Endereço'),
+        backgroundColor: Colors.green,
+      ),
       body: StreamBuilder<List<Address>>(
         stream: addressService.getAddresses(),
         builder: (context, snapshot) {
@@ -170,12 +174,18 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.add),
-                      label: const Text('Adicionar Novo Endereço'),
+                    CustomButton(
+                      label: 'Adicionar Novo Endereço',
+                      icon: Icons.add,
+                      backgroundColor: Colors.blue,
+                      textColor: Colors.white,
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -187,7 +197,11 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                       },
                     ),
                     const SizedBox(height: 10),
-                    ElevatedButton(
+                    CustomButton(
+                      label: 'Confirmar Endereço',
+                      icon: Icons.check_circle,
+                      backgroundColor: Colors.green,
+                      textColor: Colors.white,
                       onPressed:
                           selectedAddressId == null
                               ? null
@@ -197,7 +211,6 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                                 );
                                 Navigator.pop(context, selected);
                               },
-                      child: const Text('Confirmar Endereço'),
                     ),
                   ],
                 ),

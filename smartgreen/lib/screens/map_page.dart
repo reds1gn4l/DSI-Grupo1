@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/address.dart';
+import '../widgets/custom_button.dart';
 
 class MapPage extends StatefulWidget {
   final Address address;
@@ -178,6 +179,7 @@ class _MapPageState extends State<MapPage> {
       appBar: AppBar(
         title: const Text('Editar Localização'),
         centerTitle: true,
+        backgroundColor: Colors.green,
       ),
       body:
           _isLoading
@@ -189,20 +191,28 @@ class _MapPageState extends State<MapPage> {
                   _buildFormFields(),
                   _buildMap(),
                   Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.check),
-                      label: const Text('Usar este endereço'),
-                      onPressed: () {
-                        final updatedAddress = Address(
-                          id: widget.address.id,
-                          street: streetController.text,
-                          city: cityController.text,
-                          cep: cepController.text,
-                          complement: widget.address.complement,
-                        );
-                        Navigator.pop(context, updatedAddress);
-                      },
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: CustomButton(
+                        label: 'Usar este endereço',
+                        icon: Icons.check,
+                        backgroundColor: Colors.green,
+                        textColor: Colors.white,
+                        onPressed: () {
+                          final updatedAddress = Address(
+                            id: widget.address.id,
+                            street: streetController.text,
+                            city: cityController.text,
+                            cep: cepController.text,
+                            complement: widget.address.complement,
+                          );
+                          Navigator.pop(context, updatedAddress);
+                        },
+                      ),
                     ),
                   ),
                 ],

@@ -4,6 +4,7 @@ import '../services/cart_service.dart';
 import '../models/cart_item.dart';
 import 'address_selection_page.dart';
 import 'payment_page.dart';
+import '../widgets/custom_button.dart';
 
 class CartPage extends StatelessWidget {
   const CartPage({super.key});
@@ -140,7 +141,10 @@ class CartPage extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        ElevatedButton(
+                        CustomButton(
+                          label: 'Finalizar Compra',
+                          icon: Icons.shopping_cart_checkout,
+                          backgroundColor: Colors.green,
                           onPressed: () async {
                             final selectedAddress = await Navigator.push(
                               context,
@@ -148,7 +152,6 @@ class CartPage extends StatelessWidget {
                                 builder: (_) => const AddressSelectionPage(),
                               ),
                             );
-
                             if (context.mounted && selectedAddress != null) {
                               Navigator.push(
                                 context,
@@ -161,30 +164,12 @@ class CartPage extends StatelessWidget {
                               );
                             }
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            textStyle: const TextStyle(fontSize: 16),
-                          ),
-                          child: const Text('Finalizar Compra'),
                         ),
                         const SizedBox(height: 10),
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.delete, color: Colors.white),
-                          label: const Text('Esvaziar Carrinho'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            textStyle: const TextStyle(fontSize: 16),
-                          ),
+                        CustomButton(
+                          label: 'Esvaziar Carrinho',
+                          icon: Icons.delete,
+                          backgroundColor: Colors.red,
                           onPressed: () async {
                             final confirm = await showDialog<bool>(
                               context: context,
@@ -212,9 +197,7 @@ class CartPage extends StatelessWidget {
                                   ),
                             );
 
-                            if (confirm == true) {
-                              cart.clearCart();
-                            }
+                            if (confirm == true) cart.clearCart();
                           },
                         ),
                       ],

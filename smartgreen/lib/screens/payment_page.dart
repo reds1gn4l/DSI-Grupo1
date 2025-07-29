@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../models/address.dart';
 import '../models/order.dart';
 import '../services/order_service.dart';
 import '../services/cart_service.dart';
 import 'order_confirmation_page.dart';
+import '../widgets/custom_button.dart';
 
 class PaymentPage extends StatefulWidget {
   final Address selectedAddress;
@@ -21,9 +21,7 @@ class _PaymentPageState extends State<PaymentPage> {
 
   Future<void> _finalizarPedido() async {
     final cart = Provider.of<CartService>(context, listen: false);
-    final orderService = OrderService(
-      userId: 'teste',
-    ); // Substituir por auth futuramente
+    final orderService = OrderService(userId: 'teste');
 
     final order = Order(
       id: '',
@@ -149,33 +147,17 @@ class _PaymentPageState extends State<PaymentPage> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.check_circle, color: Colors.white),
-                  label: const Text('Finalizar Pedido'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    textStyle: const TextStyle(fontSize: 16),
-                  ),
+                CustomButton(
+                  label: 'Finalizar Pedido',
+                  icon: Icons.check_circle,
+                  backgroundColor: Colors.green,
                   onPressed: _finalizarPedido,
                 ),
                 const SizedBox(height: 10),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.cancel, color: Colors.white),
-                  label: const Text('Cancelar'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    textStyle: const TextStyle(fontSize: 16),
-                  ),
+                CustomButton(
+                  label: 'Cancelar',
+                  icon: Icons.cancel,
+                  backgroundColor: Colors.red,
                   onPressed: () => Navigator.pop(context),
                 ),
               ],

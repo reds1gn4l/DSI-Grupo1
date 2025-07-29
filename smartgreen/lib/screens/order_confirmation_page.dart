@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/custom_button.dart'; // certifique-se de importar
 
 class OrderConfirmationPage extends StatelessWidget {
   final String orderId;
@@ -31,6 +32,7 @@ class OrderConfirmationPage extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Container(
+              width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.grey.shade200,
@@ -46,7 +48,7 @@ class OrderConfirmationPage extends StatelessWidget {
               child: Column(
                 children: [
                   const Text(
-                    'Número do Pedido:',
+                    'Código do Pedido:',
                     style: TextStyle(fontSize: 16),
                   ),
                   const SizedBox(height: 8),
@@ -63,22 +65,18 @@ class OrderConfirmationPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 32),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.home),
-              label: const Text('Voltar à Página Inicial'),
-              style: ElevatedButton.styleFrom(
+
+            /// BOTÃO PADRONIZADO
+            SizedBox(
+              width: double.infinity,
+              child: CustomButton(
+                label: 'Voltar à Página Inicial',
+                icon: Icons.home,
                 backgroundColor: Colors.green,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
+                onPressed: () {
+                  Navigator.popUntil(context, (route) => route.isFirst);
+                },
               ),
-              onPressed: () {
-                Navigator.popUntil(context, (route) => route.isFirst);
-              },
             ),
           ],
         ),
