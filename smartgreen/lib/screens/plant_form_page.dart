@@ -15,187 +15,205 @@ class PlantFormPage extends StatefulWidget {
 class _PlantFormPageState extends State<PlantFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _temperaturaMinController = TextEditingController();
-  final _temperaturaMaxController = TextEditingController();
+  final _tempMinController = TextEditingController();
+  final _tempMaxController = TextEditingController();
   final _umidadeMinController = TextEditingController();
   final _umidadeMaxController = TextEditingController();
-  final _plantingDateController = TextEditingController();
 
-  String? _selectedLight = 'sol';
-  final _service = PlantService();
+  late DateTime _dataPlantio;
 
   @override
   void initState() {
     super.initState();
 
+    // Preenche os campos se for edição
     if (widget.plant != null) {
-      final p = widget.plant!;
-      _nameController.text = p.name;
-      _temperaturaMinController.text = p.temperaturaMin?.toString() ?? '';
-      _temperaturaMaxController.text = p.temperaturaMax?.toString() ?? '';
-      _umidadeMinController.text = p.umidadeMin?.toString() ?? '';
-      _umidadeMaxController.text = p.umidadeMax?.toString() ?? '';
-      _plantingDateController.text = p.plantingDate ?? '';
-      _selectedLight = p.lightPreference ?? 'sol';
+      _nameController.text = widget.plant!.name;
+      _tempMinController.text = widget.plant!.temperaturaMin?.toString() ?? '';
+      _tempMaxController.text = widget.plant!.temperaturaMax?.toString() ?? '';
+      _umidadeMinController.text = widget.plant!.umidadeMin?.toString() ?? '';
+      _umidadeMaxController.text = widget.plant!.umidadeMax?.toString() ?? '';
+      _dataPlantio = widget.plant!.dataPlantio ?? DateTime.now();
     } else {
-      _plantingDateController.text = DateFormat(
-        'dd/MM/yyyy',
-      ).format(DateTime.now());
+      _dataPlantio = DateTime.now(); // pré-preenchida com a data do dia
     }
   }
 
-  void _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    // Coleta os valores
-    final temperaturaMin = int.tryParse(_temperaturaMinController.text);
-    final temperaturaMax = int.tryParse(_temperaturaMaxController.text);
-    final umidadeMin = int.tryParse(_umidadeMinController.text);
-    final umidadeMax = int.tryParse(_umidadeMaxController.text);
-
-    // Lógica para determinar o status
-    int erros = 0;
-    if (temperaturaMin == null || temperaturaMin < 10 || temperaturaMin > 40)
-      erros++;
-    if (temperaturaMax == null || temperaturaMax < 10 || temperaturaMax > 40)
-      erros++;
-    if (umidadeMin == null || umidadeMin < 20 || umidadeMin > 90) erros++;
-    if (umidadeMax == null || umidadeMax < 20 || umidadeMax > 90) erros++;
-
-    String status;
-    if (erros >= 3) {
-      status = 'vermelho';
-    } else if (erros == 2) {
-      status = 'laranja';
-    } else if (erros == 1) {
-      status = 'amarelo';
-    } else {
-      status = 'verde';
-    }
-
-    final newPlant = Plant(
-      id: widget.plant?.id ?? '',
-      name: _nameController.text.trim(),
-      status: status,
-      temperaturaMin: temperaturaMin,
-      temperaturaMax: temperaturaMax,
-      umidadeMin: umidadeMin,
-      umidadeMax: umidadeMax,
-      plantingDate: _plantingDateController.text.trim(),
-      lightPreference: _selectedLight,
-    );
-
-    if (widget.plant == null) {
-      await _service.addPlant(newPlant);
-    } else {
-      await _service.updatePlant(newPlant);
-    }
-
-    Navigator.pop(context);
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _tempMinController.dispose();
+    _tempMaxController.dispose();
+    _umidadeMinController.dispose();
+    _umidadeMaxController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isEdit = widget.plant != null;
+    final headerTitle =
+        widget.plant == null ? 'Cadastrar Planta' : 'Editar Planta';
 
     return Scaffold(
-      appBar: AppBar(title: Text(isEdit ? 'Editar planta' : 'Nova planta')),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Nome da planta'),
-                validator:
-                    (value) =>
-                        value == null || value.isEmpty
-                            ? 'Informe o nome'
-                            : null,
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
+      body: Column(
+        children: [
+          // Faixa verde com título
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            color: const Color(0xFF2E7D32),
+            child: Text(
+              headerTitle,
+              style: const TextStyle(
+                fontSize: 18,
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _temperaturaMinController,
-                      decoration: const InputDecoration(
-                        labelText: 'Temp. mínima',
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _temperaturaMaxController,
-                      decoration: const InputDecoration(
-                        labelText: 'Temp. máxima',
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _umidadeMinController,
-                      decoration: const InputDecoration(
-                        labelText: 'Umidade mínima',
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _umidadeMaxController,
-                      decoration: const InputDecoration(
-                        labelText: 'Umidade máxima',
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _plantingDateController,
-                decoration: const InputDecoration(labelText: 'Data de plantio'),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: _selectedLight,
-                decoration: const InputDecoration(labelText: 'Exposição solar'),
-                items: const [
-                  DropdownMenuItem(value: 'sol', child: Text('Sempre ao sol')),
-                  DropdownMenuItem(
-                    value: 'sombra',
-                    child: Text('Sempre à sombra'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'parcial',
-                    child: Text('Parcialmente exposta'),
-                  ),
-                ],
-                onChanged: (value) {
-                  setState(() => _selectedLight = value);
-                },
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _submit,
-                child: Text(isEdit ? 'Salvar' : 'Cadastrar'),
-              ),
-            ],
+              textAlign: TextAlign.center,
+            ),
           ),
-        ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    // Nome
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Nome da planta',
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Informe o nome da planta';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Temperatura min / max
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _tempMinController,
+                            decoration: const InputDecoration(
+                              labelText: 'Temperatura Mín. (°C)',
+                            ),
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _tempMaxController,
+                            decoration: const InputDecoration(
+                              labelText: 'Temperatura Máx. (°C)',
+                            ),
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Umidade min / max
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _umidadeMinController,
+                            decoration: const InputDecoration(
+                              labelText: 'Umidade Mín. (%)',
+                            ),
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextFormField(
+                            controller: _umidadeMaxController,
+                            decoration: const InputDecoration(
+                              labelText: 'Umidade Máx. (%)',
+                            ),
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Data de plantio
+                    Row(
+                      children: [
+                        const Text(
+                          'Data de plantio: ',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        Text(DateFormat('dd/MM/yyyy').format(_dataPlantio)),
+                        const Spacer(),
+                        TextButton.icon(
+                          icon: const Icon(Icons.calendar_today, size: 18),
+                          label: const Text('Selecionar'),
+                          onPressed: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: _dataPlantio,
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime.now(),
+                            );
+                            if (!mounted) return;
+                            if (picked != null) {
+                              setState(() => _dataPlantio = picked);
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Botão salvar
+                    ElevatedButton(
+                      onPressed: _savePlant,
+                      child: Text(
+                        widget.plant == null ? 'Salvar' : 'Salvar alterações',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  Future<void> _savePlant() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final plant = Plant(
+      id: widget.plant?.id ?? '',
+      name: _nameController.text.trim(),
+      temperaturaMin: int.tryParse(_tempMinController.text),
+      temperaturaMax: int.tryParse(_tempMaxController.text),
+      umidadeMin: int.tryParse(_umidadeMinController.text),
+      umidadeMax: int.tryParse(_umidadeMaxController.text),
+      dataPlantio: _dataPlantio, // ✅ volta a salvar a data
+      status: widget.plant?.status ?? 'cinza', // exigido pelo construtor
+      // se seu modelo tiver mais campos obrigatórios, inclua aqui
+    );
+
+    if (widget.plant == null) {
+      await PlantService().addPlant(plant);
+    } else {
+      await PlantService().updatePlant(plant);
+    }
+
+    if (mounted) Navigator.pop(context);
   }
 }
