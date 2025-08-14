@@ -32,7 +32,6 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
 
     if (doc.exists) {
       setState(() {
-        // ordem correta: id primeiro, depois o mapa
         plant = Plant.fromMap(doc.id, doc.data() as Map<String, dynamic>);
       });
     }
@@ -70,11 +69,10 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
       ),
       body: Column(
         children: [
-          // === Banner verde no topo (igual ao da Loja) ===
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 12),
-            color: const Color(0xFF2E7D32), // verde SmartGreen
+            color: const Color(0xFF2E7D32),
             child: const Center(
               child: Text(
                 'Detalhes da Planta',
@@ -86,7 +84,6 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
               ),
             ),
           ),
-          // Conteúdo
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -95,8 +92,6 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
                 children: [
                   _detailRow('Data de plantio:', plantingText),
                   const SizedBox(height: 16),
-
-                  // Temperatura
                   _statusBar(
                     label: 'Temperatura',
                     min: -10,
@@ -120,8 +115,6 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // Umidade
                   _statusBar(
                     label: 'Umidade',
                     min: 0,
@@ -145,8 +138,6 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // Luz Solar
                   _statusBar(
                     label: 'Luz Solar (últimas 24h)',
                     min: 0,
@@ -156,7 +147,7 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
                     idealMax: _idealLuzMax(plant!.exposicaoSolar ?? ''),
                     gradient: const LinearGradient(
                       colors: [Colors.black, Colors.orange, Colors.yellow],
-                      stops: [0.0, 0.6, 1.0], // menos área preta
+                      stops: [0.0, 0.6, 1.0],
                     ),
                     unit: 'h',
                     icon: const Icon(
@@ -184,8 +175,6 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
     );
   }
 
-  /// Barra com gradiente + marcador responsivo
-  /// Reserva espaço acima e abaixo para o ícone não “cortar”
   Widget _statusBar({
     required String label,
     required double min,
@@ -202,10 +191,8 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
     final percent = (clamped - min) / (max - min);
     final iconSize = icon.size ?? 48.0;
 
-    // Espaços reservados para o ícone NÃO sobrepor textos
-    final topPaddingForIcon = iconSize * 0.55; // ícone acima da barra
-    final bottomPaddingForIcon =
-        (iconSize - barHeight) / 2; // cauda do ícone abaixo da barra
+    final topPaddingForIcon = iconSize * 0.55;
+    final bottomPaddingForIcon = (iconSize - barHeight) / 2;
     final iconTop = topPaddingForIcon - (iconSize - barHeight) / 2;
 
     return Column(
@@ -226,7 +213,6 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  // Barra
                   Positioned.fill(
                     top: topPaddingForIcon,
                     bottom: bottomPaddingForIcon,
@@ -238,7 +224,6 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
                       ),
                     ),
                   ),
-                  // Ícone marcador (sempre sobre a barra)
                   Positioned(left: iconLeft, top: iconTop, child: icon),
                 ],
               ),
@@ -306,7 +291,10 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
 
     if (confirm == true) {
       await PlantService().deletePlant(plant!.id);
-      if (mounted) Navigator.pop(context);
+      // CORREÇÃO APLICADA AQUI
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
     }
   }
 }
