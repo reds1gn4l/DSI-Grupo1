@@ -17,6 +17,12 @@ class _CatalogPageState extends State<CatalogPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final crossAxisCount = 2;
+    final itemWidth = (screenWidth - 30) / crossAxisCount;
+    final itemHeight = 250;
+    final aspectRatio = itemWidth / itemHeight;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Catálogo de Sementes'),
@@ -26,7 +32,6 @@ class _CatalogPageState extends State<CatalogPage> {
       ),
       body: Column(
         children: [
-          // Campo de busca
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
@@ -35,15 +40,19 @@ class _CatalogPageState extends State<CatalogPage> {
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(),
               ),
+              textInputAction: TextInputAction.search,
               onChanged: (value) {
                 setState(() {
-                  _searchQuery = value.toLowerCase();
+                  _searchQuery = value.trim().toLowerCase();
+                });
+              },
+              onSubmitted: (value) {
+                setState(() {
+                  _searchQuery = value.trim().toLowerCase();
                 });
               },
             ),
           ),
-
-          // Lista de produtos
           Expanded(
             child: StreamBuilder<List<Product>>(
               stream: _productService.getProducts(),
@@ -57,7 +66,6 @@ class _CatalogPageState extends State<CatalogPage> {
 
                 List<Product> products = snapshot.data ?? [];
 
-                // Aplicar filtro de busca
                 if (_searchQuery.isNotEmpty) {
                   products =
                       products
@@ -76,9 +84,9 @@ class _CatalogPageState extends State<CatalogPage> {
                 return GridView.builder(
                   padding: const EdgeInsets.all(10),
                   itemCount: products.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.8,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    childAspectRatio: aspectRatio,
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
                   ),
@@ -86,6 +94,9 @@ class _CatalogPageState extends State<CatalogPage> {
                     final product = products[index];
                     return Card(
                       elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: InkWell(
                         onTap: () {
                           Navigator.push(
@@ -100,9 +111,18 @@ class _CatalogPageState extends State<CatalogPage> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Expanded(
-                              child: Image.network(
-                                product.imageUrl,
-                                fit: BoxFit.cover,
+                              child: Hero(
+                                tag: product.id,
+                                child: ClipRRect(
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(12),
+                                    topRight: Radius.circular(12),
+                                  ),
+                                  child: Image.network(
+                                    product.imageUrl,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
                               ),
                             ),
                             Padding(

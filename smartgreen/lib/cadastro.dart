@@ -7,10 +7,11 @@ class UserRegistrationPage extends StatefulWidget {
   const UserRegistrationPage({super.key});
 
   @override
-  _UserRegistrationPageState createState() => _UserRegistrationPageState();
+  UserRegistrationPageState createState() => UserRegistrationPageState(); // Corrigido para tipo público
 }
 
-class _UserRegistrationPageState extends State<UserRegistrationPage> {
+// Classe do estado agora é pública
+class UserRegistrationPageState extends State<UserRegistrationPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -23,20 +24,20 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
         context: context,
         builder:
             (context) => AlertDialog(
-              title: Text('Registrar Endereço'),
-              content: Text('Você quer registrar o seu endereço?'),
+              title: const Text('Registrar Endereço'),
+              content: const Text('Você quer registrar o seu endereço?'),
               actions: [
                 TextButton(
                   onPressed: () {
                     Navigator.pop(context);
                     // Handle "No" action
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text('Usuário não registrou o endereço.'),
                       ),
                     );
                   },
-                  child: Text('Agora não'),
+                  child: const Text('Agora não'),
                 ),
                 TextButton(
                   onPressed: () {
@@ -49,7 +50,7 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
                       ),
                     );
                   },
-                  child: Text('Sim'),
+                  child: const Text('Sim'),
                 ),
               ],
             ),
@@ -60,7 +61,7 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Cadastro')),
+      appBar: AppBar(title: const Text('Cadastro')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -69,10 +70,10 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
             children: [
               // Logo
               Center(child: Image.asset('assets/smartgreen.png', height: 150)),
-              SizedBox(height: 40),
+              const SizedBox(height: 40),
               TextFormField(
                 controller: _nameController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Nome completo',
                   border: OutlineInputBorder(),
                 ),
@@ -83,10 +84,10 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
                   return null;
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _emailController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'E-mail',
                   border: OutlineInputBorder(),
                 ),
@@ -103,10 +104,10 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
                   return null;
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _passwordController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Senha',
                   border: OutlineInputBorder(),
                 ),
@@ -121,10 +122,10 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
                   return null;
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _repeatPasswordController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Repitar senha',
                   border: OutlineInputBorder(),
                 ),
@@ -139,8 +140,11 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
                   return null;
                 },
               ),
-              SizedBox(height: 40),
-              ElevatedButton(onPressed: _submitForm, child: Text('Cadastrar')),
+              const SizedBox(height: 40),
+              ElevatedButton(
+                onPressed: _submitForm,
+                child: const Text('Cadastrar'),
+              ),
             ],
           ),
         ),
@@ -163,7 +167,7 @@ class AddressRegistrationPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromRGBO(247, 246, 242, 1),
-      appBar: AppBar(title: Text('Cadastro de Endereço')),
+      appBar: AppBar(title: const Text('Cadastro de Endereço')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -172,7 +176,7 @@ class AddressRegistrationPage extends StatelessWidget {
             children: [
               TextFormField(
                 controller: _cepController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'CEP',
                   border: OutlineInputBorder(),
                 ),
@@ -188,10 +192,10 @@ class AddressRegistrationPage extends StatelessWidget {
                   return null;
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _addressController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Endereço',
                   border: OutlineInputBorder(),
                 ),
@@ -202,18 +206,18 @@ class AddressRegistrationPage extends StatelessWidget {
                   return null;
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _address2Controller,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Complemento',
                   border: OutlineInputBorder(),
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _cityController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Cidade',
                   border: OutlineInputBorder(),
                 ),
@@ -224,10 +228,10 @@ class AddressRegistrationPage extends StatelessWidget {
                   return null;
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _stateController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Estado',
                   border: OutlineInputBorder(),
                 ),
@@ -238,15 +242,15 @@ class AddressRegistrationPage extends StatelessWidget {
                   return null;
                 },
               ),
-              SizedBox(height: 40),
+              const SizedBox(height: 40),
               ElevatedButton(
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => HomePage()),
+                    MaterialPageRoute(builder: (context) => const HomePage()),
                   );
                 },
-                child: Text('Finalizar Cadastro'),
+                child: const Text('Finalizar Cadastro'),
               ),
             ],
           ),
@@ -257,5 +261,5 @@ class AddressRegistrationPage extends StatelessWidget {
 }
 
 void main() {
-  runApp(MaterialApp(home: UserRegistrationPage()));
+  runApp(const MaterialApp(home: UserRegistrationPage()));
 }

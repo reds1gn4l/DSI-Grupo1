@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import '../models/address.dart';
 import '../services/address_service.dart';
+import 'map_page.dart';
+import '../widgets/custom_button.dart';
 
 class AddressFormPage extends StatefulWidget {
-  final Address? address; // Parâmetro opcional para edição
+  final Address? address;
 
-  const AddressFormPage({super.key, this.address}); // Adicione este parâmetro
+  const AddressFormPage({super.key, this.address});
 
   @override
-  State<AddressFormPage> createState() => _AddressFormPageState(); // Corrija o nome do State
+  State<AddressFormPage> createState() => _AddressFormPageState();
 }
 
 class _AddressFormPageState extends State<AddressFormPage> {
@@ -21,7 +23,6 @@ class _AddressFormPageState extends State<AddressFormPage> {
   @override
   void initState() {
     super.initState();
-    // Preenche os campos se estiver editando
     if (widget.address != null) {
       streetController.text = widget.address!.street;
       cityController.text = widget.address!.city;
@@ -30,49 +31,109 @@ class _AddressFormPageState extends State<AddressFormPage> {
     }
   }
 
+  InputDecoration _inputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      filled: true,
+      fillColor: const Color(0xFFF5F5F5),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.grey),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.green, width: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final addressService = AddressService(userId: 'teste');
-    final isEditing = widget.address != null; // Verifica modo edição
+    final isEditing = widget.address != null;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(isEditing ? 'Editar Endereço' : 'Novo Endereço'),
+        backgroundColor: Colors.green,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: Column(
+          child: ListView(
             children: [
               TextFormField(
                 controller: streetController,
-                decoration: const InputDecoration(labelText: 'Rua'),
+                decoration: _inputDecoration('Rua'),
                 validator: (value) => value!.isEmpty ? 'Informe a rua' : null,
               ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: cityController,
-                decoration: const InputDecoration(labelText: 'Cidade'),
+                decoration: _inputDecoration('Cidade'),
                 validator:
                     (value) => value!.isEmpty ? 'Informe a cidade' : null,
               ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: cepController,
-                decoration: const InputDecoration(labelText: 'CEP'),
+                decoration: _inputDecoration('CEP'),
                 validator: (value) => value!.isEmpty ? 'Informe o CEP' : null,
               ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: complementController,
-                decoration: const InputDecoration(labelText: 'Complemento'),
+                decoration: _inputDecoration('Complemento'),
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
+
+              /// Botão de Mapa
+              CustomButton(
+                label: 'Ver/Editar no Mapa',
+                icon: Icons.map,
+                backgroundColor: Colors.blue,
+                textColor: Colors.white,
+                onPressed: () async {
+                  final updatedAddress = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (_) => MapPage(
+                            address: Address(
+                              id: widget.address?.id ?? '',
+                              street: streetController.text,
+                              city: cityController.text,
+                              cep: cepController.text,
+                              complement: complementController.text,
+                            ),
+                          ),
+                    ),
+                  );
+
+                  if (updatedAddress != null && updatedAddress is Address) {
+                    setState(() {
+                      streetController.text = updatedAddress.street;
+                      cityController.text = updatedAddress.city;
+                      cepController.text = updatedAddress.cep;
+                    });
+                  }
+                },
+              ),
+
+              const SizedBox(height: 20),
+
+              /// Botão de Salvar/Editar
+              CustomButton(
+                label: isEditing ? 'Salvar Alterações' : 'Salvar Endereço',
+                icon: Icons.check_circle,
+                backgroundColor: Colors.green,
+                textColor: Colors.white,
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     final address = Address(
-                      id:
-                          widget.address?.id ??
-                          '', // Mantém ID se estiver editando
+                      id: widget.address?.id ?? '',
                       street: streetController.text,
                       city: cityController.text,
                       cep: cepController.text,
@@ -88,9 +149,6 @@ class _AddressFormPageState extends State<AddressFormPage> {
                     if (context.mounted) Navigator.pop(context);
                   }
                 },
-                child: Text(
-                  isEditing ? 'Salvar Alterações' : 'Salvar Endereço',
-                ),
               ),
             ],
           ),

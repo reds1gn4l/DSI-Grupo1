@@ -45,7 +45,10 @@ class _SupplyFormPageState extends State<SupplyFormPage> {
       await _service.updateSupply(newSupply);
     }
 
-    Navigator.pop(context);
+    // CORREÇÃO DEFINITIVA AQUI (usar mounted do State)
+    if (mounted) {
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -65,27 +68,36 @@ class _SupplyFormPageState extends State<SupplyFormPage> {
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Nome'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Informe o nome' : null,
+                validator:
+                    (value) =>
+                        value == null || value.isEmpty
+                            ? 'Informe o nome'
+                            : null,
               ),
               TextFormField(
                 controller: _quantityController,
                 decoration: const InputDecoration(labelText: 'Quantidade'),
                 keyboardType: TextInputType.number,
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Informe a quantidade' : null,
+                validator:
+                    (value) =>
+                        value == null || value.isEmpty
+                            ? 'Informe a quantidade'
+                            : null,
               ),
               TextFormField(
                 controller: _validityController,
                 decoration: const InputDecoration(labelText: 'Validade'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Informe a validade' : null,
+                validator:
+                    (value) =>
+                        value == null || value.isEmpty
+                            ? 'Informe a validade'
+                            : null,
               ),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _submit,
                 child: Text(isEdit ? 'Salvar' : 'Finalizar Cadastro'),
-              )
+              ),
             ],
           ),
         ),

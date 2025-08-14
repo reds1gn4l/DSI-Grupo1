@@ -7,7 +7,13 @@ class OrderService {
 
   OrderService({required this.userId});
 
-  Future<void> addOrder(Order order) async {
-    await _db.collection('orders').add(order.toMap());
+  Future<String> addOrder(Order order) async {
+    final docRef = await _db
+        .collection('users')
+        .doc(userId)
+        .collection('orders')
+        .add(order.toMap());
+
+    return docRef.id;
   }
 }

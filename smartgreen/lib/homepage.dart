@@ -7,10 +7,11 @@ class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  _HomePageState createState() => _HomePageState();
+  HomePageState createState() => HomePageState(); // Tipo público aqui
 }
 
-class _HomePageState extends State<HomePage>
+// Classe do estado agora é pública (sem underscore)
+class HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
@@ -43,9 +44,7 @@ class _HomePageState extends State<HomePage>
       body: TabBarView(
         controller: _tabController,
         children: const [
-          Center(
-            child: PlantListPage(),
-          ), // Aqui entrará a lista de plantas futuramente
+          Center(child: PlantListPage()),
           CatalogPage(),
           SupplyListPage(),
         ],

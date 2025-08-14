@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/product.dart';
 import 'package:provider/provider.dart';
 import '../services/cart_service.dart';
+import '../widgets/custom_button.dart';
 
 class ProductDetailPage extends StatelessWidget {
   final Product product;
@@ -18,10 +19,16 @@ class ProductDetailPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child: Image.network(
-                product.imageUrl,
-                height: 200,
-                fit: BoxFit.cover,
+              child: Hero(
+                tag: product.id,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.network(
+                    product.imageUrl,
+                    height: 200,
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -39,9 +46,9 @@ class ProductDetailPage extends StatelessWidget {
             const Spacer(),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.add_shopping_cart),
-                label: const Text('Adicionar ao Carrinho'),
+              child: CustomButton(
+                label: 'Adicionar ao Carrinho',
+                icon: Icons.add_shopping_cart,
                 onPressed: () {
                   final cart = Provider.of<CartService>(context, listen: false);
                   cart.addToCart(product);
