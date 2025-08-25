@@ -33,6 +33,13 @@ migrate_working_dir/
 .pub/
 /build/
 
+# Flutter generated plugin files
+smartgreen/linux/flutter/generated_plugin_registrant.*
+smartgreen/linux/flutter/generated_plugins.cmake
+smartgreen/macos/Flutter/GeneratedPluginRegistrant.swift
+smartgreen/windows/flutter/generated_plugin_registrant.*
+smartgreen/windows/flutter/generated_plugins.cmake
+
 # Symbolication related
 app.*.symbols
 

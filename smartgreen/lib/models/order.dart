@@ -20,7 +20,7 @@ class Order {
 
   Map<String, dynamic> toMap() {
     return {
-      'items': items.map((item) => item.toMap()).toList(),
+      'items': items.map((item) => item.toOrderMap()).toList(),
       'address': address.toMap(),
       'paymentMethod': paymentMethod,
       'total': total,
@@ -28,13 +28,18 @@ class Order {
     };
   }
 
-  factory Order.fromMap(String id, Map<String, dynamic> data) {
+  static Future<Order> fromMapAsync(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
+    final itemsData = data['items'] as List;
+    final items = await Future.wait(
+      itemsData.map((item) => CartItem.fromOrderMapAsync(item)),
+    );
+
     return Order(
       id: id,
-      items:
-          (data['items'] as List)
-              .map((item) => CartItem.fromMap(item))
-              .toList(),
+      items: items,
       address: Address.fromMap('', data['address']),
       paymentMethod: data['paymentMethod'],
       total: (data['total'] ?? 0).toDouble(),
