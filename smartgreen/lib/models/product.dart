@@ -1,120 +1,69 @@
 class Product {
   final String id;
-  final String CientificName;
-  final DateTime? DataPlantio;
-  final String DescricaoPlanta;
-  final String DescricaoProd;
-  final String FxTemp;
-  final String FxUmidade;
-  final double PrecoUnt;
-  final String TempoSol;
+  final String cientificName;
+  final DateTime? dataPlantio;
+  final String descricaoPlanta;
+  final String descricaoProd;
+  final String fxTemp;
+  final String fxUmidade;
+  final double precoUnt;
+  final String tempoSol;
   final int? stock;
   final String? category;
-  final int? ValDias;
+  final int? valDias;
   final String imageURL;
 
   Product({
     required this.id,
-    required this.CientificName,
-    this.DataPlantio,
-    required this.DescricaoPlanta,
-    required this.DescricaoProd,
-    required this.FxTemp,
-    required this.FxUmidade,
-    required this.PrecoUnt,
-    required this.TempoSol,
+    required this.cientificName,
+    this.dataPlantio,
+    required this.descricaoPlanta,
+    required this.descricaoProd,
+    required this.fxTemp,
+    required this.fxUmidade,
+    required this.precoUnt,
+    required this.tempoSol,
     this.stock,
     this.category,
-    this.ValDias,
+    this.valDias,
     required this.imageURL,
   });
 
-  factory Product.fromMap(
-    String id,
-    Map<
-      String,
-      dynamic
-    >
-    data,
-  ) {
+  factory Product.fromMap(String id, Map<String, dynamic> data) {
     return Product(
-      id:
-          id,
-      CientificName:
-          data['CientificName'] ??
-          '',
-      DataPlantio:
-          data['DataPlantio'] !=
-                  null
-              ? DateTime.tryParse(
-                data['DataPlantio'].toString(),
-              )
+      id: id,
+      cientificName: data['CientificName'] ?? '',
+      dataPlantio:
+          data['DataPlantio'] != null
+              ? DateTime.tryParse(data['DataPlantio'].toString())
               : null,
-      DescricaoPlanta:
-          data['DescricaoPlanta'] ??
-          '',
-      DescricaoProd:
-          data['DescricaoProd'] ??
-          '',
-      FxTemp:
-          data['FxTemp'] ??
-          '',
-      FxUmidade:
-          data['FxUmidade'] ??
-          '',
-      PrecoUnt:
-          (data['PrecoUnt'] ??
-                  0)
-              .toDouble(),
-      TempoSol:
-          data['TempoSol'] ??
-          '',
-      stock:
-          (data['stock']
-                  as num?)
-              ?.toInt(),
-      category:
-          data['category'],
-      ValDias:
-          (data['ValDias']
-                  as num?)
-              ?.toInt(),
-      imageURL:
-          data['imageURL'] ??
-          '',
+      descricaoPlanta: data['DescricaoPlanta'] ?? '',
+      descricaoProd: data['DescricaoProd'] ?? '',
+      fxTemp: data['FxTemp'] ?? '',
+      fxUmidade: data['FxUmidade'] ?? '',
+      precoUnt: (data['PrecoUnt'] ?? 0).toDouble(),
+      tempoSol: data['TempoSol'] ?? '',
+      stock: (data['stock'] as num?)?.toInt(),
+      category: data['category'],
+      valDias: (data['ValDias'] as num?)?.toInt(),
+      imageURL: data['imageURL'] ?? '',
     );
   }
 
-  Map<
-    String,
-    dynamic
-  >
-  toMap() {
+  Map<String, dynamic> toMap() {
     return {
-      'CientificName':
-          CientificName,
-      'DataPlantio':
-          DataPlantio?.toIso8601String(),
-      'DescricaoPlanta':
-          DescricaoPlanta,
-      'DescricaoProd':
-          DescricaoProd,
-      'FxTemp':
-          FxTemp,
-      'FxUmidade':
-          FxUmidade,
-      'PrecoUnt':
-          PrecoUnt,
-      'TempoSol':
-          TempoSol,
-      'stock':
-          stock,
-      'category':
-          category,
-      'ValDias':
-          ValDias,
-      'imageURL':
-          imageURL,
+      'CientificName': cientificName,
+      'DataPlantio': dataPlantio?.toIso8601String(),
+      'DescricaoPlanta': descricaoPlanta,
+      'DescricaoProd': descricaoProd,
+      'FxTemp': fxTemp,
+      'FxUmidade': fxUmidade,
+      'PrecoUnt': precoUnt,
+      'TempoSol': tempoSol,
+      'stock': stock,
+      'category': category,
+      'ValDias': valDias,
+      'imageURL': imageURL,
     };
   }
 }

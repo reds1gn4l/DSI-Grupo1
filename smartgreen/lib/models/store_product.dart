@@ -2,199 +2,111 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class StoreProduct {
   final String id;
-  final String CientificName;
-  final DateTime? DataPlantio;
-  final String DescricaoPlanta;
-  final String DescricaoProd;
-  final String FxTemp;
-  final String FxUmidade;
-  final double PrecoUnt;
-  final String TempoSol;
+  final String cientificName;
+  final DateTime? dataPlantio;
+  final String descricaoPlanta;
+  final String descricaoProd;
+  final String fxTemp;
+  final String fxUmidade;
+  final double precoUnt;
+  final String tempoSol;
   final int? stock;
   final String? category;
-  final int? ValDias;
+  final int? valDias;
   final String imageURL;
   final DateTime? createdAt;
 
   StoreProduct({
     required this.id,
-    required this.CientificName,
-    this.DataPlantio,
-    required this.DescricaoPlanta,
-    required this.DescricaoProd,
-    required this.FxTemp,
-    required this.FxUmidade,
-    required this.PrecoUnt,
-    required this.TempoSol,
+    required this.cientificName,
+    this.dataPlantio,
+    required this.descricaoPlanta,
+    required this.descricaoProd,
+    required this.fxTemp,
+    required this.fxUmidade,
+    required this.precoUnt,
+    required this.tempoSol,
     this.stock,
     this.category,
-    this.ValDias,
+    this.valDias,
     required this.imageURL,
     this.createdAt,
   });
 
-  factory StoreProduct.fromMap(
-    String id,
-    Map<
-      String,
-      dynamic
-    >
-    map,
-  ) {
+  factory StoreProduct.fromMap(String id, Map<String, dynamic> map) {
     return StoreProduct(
-      id:
-          id,
-      CientificName:
-          map['CientificName'] ??
-          '',
-      DataPlantio:
-          map['DataPlantio'] !=
-                  null
-              ? DateTime.tryParse(
-                map['DataPlantio'].toString(),
-              )
+      id: id,
+      cientificName: map['CientificName'] ?? '',
+      dataPlantio:
+          map['DataPlantio'] != null
+              ? DateTime.tryParse(map['DataPlantio'].toString())
               : null,
-      DescricaoPlanta:
-          map['DescricaoPlanta'] ??
-          '',
-      DescricaoProd:
-          map['DescricaoProd'] ??
-          '',
-      FxTemp:
-          map['FxTemp'] ??
-          '',
-      FxUmidade:
-          map['FxUmidade'] ??
-          '',
-      PrecoUnt:
-          (map['PrecoUnt'] ??
-                  0)
-              .toDouble(),
-      TempoSol:
-          map['TempoSol'] ??
-          '',
-      stock:
-          (map['stock']
-                  as num?)
-              ?.toInt(),
-      category:
-          map['category'],
-      ValDias:
-          (map['ValDias']
-                  as num?)
-              ?.toInt(),
-      imageURL:
-          map['imageURL'] ??
-          '',
+      descricaoPlanta: map['DescricaoPlanta'] ?? '',
+      descricaoProd: map['DescricaoProd'] ?? '',
+      fxTemp: map['FxTemp'] ?? '',
+      fxUmidade: map['FxUmidade'] ?? '',
+      precoUnt: (map['PrecoUnt'] ?? 0).toDouble(),
+      tempoSol: map['TempoSol'] ?? '',
+      stock: (map['stock'] as num?)?.toInt(),
+      category: map['category'],
+      valDias: (map['ValDias'] as num?)?.toInt(),
+      imageURL: map['imageURL'] ?? '',
       createdAt:
-          map['createdAt']
-                  is Timestamp
-              ? (map['createdAt']
-                      as Timestamp)
-                  .toDate()
+          map['createdAt'] is Timestamp
+              ? (map['createdAt'] as Timestamp).toDate()
               : map['createdAt'],
     );
   }
 
-  Map<
-    String,
-    dynamic
-  >
-  toMap({
-    bool forUpdate =
-        false,
-  }) {
+  Map<String, dynamic> toMap({bool forUpdate = false}) {
     return {
-      'CientificName':
-          CientificName,
-      'DataPlantio':
-          DataPlantio?.toIso8601String(),
-      'DescricaoPlanta':
-          DescricaoPlanta,
-      'DescricaoProd':
-          DescricaoProd,
-      'FxTemp':
-          FxTemp,
-      'FxUmidade':
-          FxUmidade,
-      'PrecoUnt':
-          PrecoUnt,
-      'TempoSol':
-          TempoSol,
-      'stock':
-          stock,
-      'category':
-          category,
-      'ValDias':
-          ValDias,
-      'imageURL':
-          imageURL,
-      'createdAt':
-          forUpdate
-              ? createdAt
-              : FieldValue.serverTimestamp(),
+      'CientificName': cientificName,
+      'DataPlantio': dataPlantio?.toIso8601String(),
+      'DescricaoPlanta': descricaoPlanta,
+      'DescricaoProd': descricaoProd,
+      'FxTemp': fxTemp,
+      'FxUmidade': fxUmidade,
+      'PrecoUnt': precoUnt,
+      'TempoSol': tempoSol,
+      'stock': stock,
+      'category': category,
+      'ValDias': valDias,
+      'imageURL': imageURL,
+      'createdAt': forUpdate ? createdAt : FieldValue.serverTimestamp(),
     };
   }
 
   StoreProduct copyWith({
     String? id,
-    String? CientificName,
-    DateTime? DataPlantio,
-    String? DescricaoPlanta,
-    String? DescricaoProd,
-    String? FxTemp,
-    String? FxUmidade,
-    double? PrecoUnt,
-    String? TempoSol,
+    String? cientificName,
+    DateTime? dataPlantio,
+    String? descricaoPlanta,
+    String? descricaoProd,
+    String? fxTemp,
+    String? fxUmidade,
+    double? precoUnt,
+    String? tempoSol,
     int? stock,
     String? category,
-    int? ValDias,
+    int? valDias,
     String? imageURL,
     DateTime? createdAt,
   }) {
     return StoreProduct(
-      id:
-          id ??
-          this.id,
-      CientificName:
-          CientificName ??
-          this.CientificName,
-      DataPlantio:
-          DataPlantio ??
-          this.DataPlantio,
-      DescricaoPlanta:
-          DescricaoPlanta ??
-          this.DescricaoPlanta,
-      DescricaoProd:
-          DescricaoProd ??
-          this.DescricaoProd,
-      FxTemp:
-          FxTemp ??
-          this.FxTemp,
-      FxUmidade:
-          FxUmidade ??
-          this.FxUmidade,
-      PrecoUnt:
-          PrecoUnt ??
-          this.PrecoUnt,
-      TempoSol:
-          TempoSol ??
-          this.TempoSol,
-      stock:
-          stock ??
-          this.stock,
-      category:
-          category ??
-          this.category,
-      ValDias:
-          ValDias ??
-          this.ValDias,
-      imageURL:
-          imageURL ??
-          this.imageURL,
-      createdAt:
-          createdAt ??
-          this.createdAt,
+      id: id ?? this.id,
+      cientificName: cientificName ?? this.cientificName,
+      dataPlantio: dataPlantio ?? this.dataPlantio,
+      descricaoPlanta: descricaoPlanta ?? this.descricaoPlanta,
+      descricaoProd: descricaoProd ?? this.descricaoProd,
+      fxTemp: fxTemp ?? this.fxTemp,
+      fxUmidade: fxUmidade ?? this.fxUmidade,
+      precoUnt: precoUnt ?? this.precoUnt,
+      tempoSol: tempoSol ?? this.tempoSol,
+      stock: stock ?? this.stock,
+      category: category ?? this.category,
+      valDias: valDias ?? this.valDias,
+      imageURL: imageURL ?? this.imageURL,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }
