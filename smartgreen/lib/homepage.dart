@@ -1,24 +1,41 @@
 import 'package:flutter/material.dart';
 import '../screens/catalog_page.dart';
+import '../globals.dart';
+import 'screens/login_screen.dart';
 import '../screens/supply_list_page.dart';
 import 'screens/plant_list_page.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class HomePage
+    extends
+        StatefulWidget {
+  const HomePage({
+    super.key,
+  });
 
   @override
-  HomePageState createState() => HomePageState(); // Tipo público aqui
+  HomePageState createState() =>
+      HomePageState(); // Tipo público aqui
 }
 
 // Classe do estado agora é pública (sem underscore)
-class HomePageState extends State<HomePage>
-    with SingleTickerProviderStateMixin {
+class HomePageState
+    extends
+        State<
+          HomePage
+        >
+    with
+        SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(
+      length:
+          3,
+      vsync:
+          this,
+    );
   }
 
   @override
@@ -28,23 +45,90 @@ class HomePageState extends State<HomePage>
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SmartGreen'),
+        automaticallyImplyLeading:
+            false,
+        title: const Text(
+          'SmartGreen',
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.logout,
+            ),
+            tooltip:
+                'Logout',
+            onPressed: () {
+              saveUserData(
+                id:
+                    null,
+                name:
+                    '',
+                email:
+                    '',
+                address:
+                    null,
+                isAdmin:
+                    false,
+              );
+              Navigator.of(
+                context,
+              ).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder:
+                      (
+                        _,
+                      ) =>
+                          LoginScreen(),
+                ),
+                (
+                  route,
+                ) =>
+                    false,
+              );
+            },
+          ),
+        ],
         bottom: TabBar(
-          controller: _tabController,
+          controller:
+              _tabController,
           tabs: const [
-            Tab(icon: Icon(Icons.home), text: 'Home'),
-            Tab(icon: Icon(Icons.store), text: 'Loja'),
-            Tab(icon: Icon(Icons.inventory), text: 'Insumos'),
+            Tab(
+              icon: Icon(
+                Icons.home,
+              ),
+              text:
+                  'Home',
+            ),
+            Tab(
+              icon: Icon(
+                Icons.store,
+              ),
+              text:
+                  'Loja',
+            ),
+            Tab(
+              icon: Icon(
+                Icons.inventory,
+              ),
+              text:
+                  'Insumos',
+            ),
           ],
         ),
       ),
       body: TabBarView(
-        controller: _tabController,
+        controller:
+            _tabController,
         children: const [
-          Center(child: PlantListPage()),
+          Center(
+            child:
+                PlantListPage(),
+          ),
           CatalogPage(),
           SupplyListPage(),
         ],
