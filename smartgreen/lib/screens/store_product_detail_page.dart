@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import '../models/storeProduct.dart';
-import '../services/storeProduct_service.dart';
-import 'storeProduct_form_page.dart';
+import '../models/store_product.dart';
+import '../services/store_product_service.dart';
+import 'store_product_form_page.dart';
 
-class storeProductDetailPage extends StatefulWidget {
+class StoreProductDetailPage extends StatefulWidget {
   final String storeProductId;
-  const storeProductDetailPage({super.key, required this.storeProductId});
+  const StoreProductDetailPage({super.key, required this.storeProductId});
 
   @override
-  State<storeProductDetailPage> createState() => _ProductDetailPageState();
+  State<StoreProductDetailPage> createState() => _ProductDetailPageState();
 }
 
-class _ProductDetailPageState extends State<storeProductDetailPage> {
+class _ProductDetailPageState extends State<StoreProductDetailPage> {
   final _service = StoreProductService();
   StoreProduct? _product;
 
@@ -71,7 +71,7 @@ class _ProductDetailPageState extends State<storeProductDetailPage> {
               await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => storeProductFormPage(storeProduct: p),
+                  builder: (_) => StoreProductFormPage(storeProduct: p),
                 ),
               );
               if (mounted) _load();

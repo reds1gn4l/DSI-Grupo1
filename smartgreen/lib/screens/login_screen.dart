@@ -5,201 +5,113 @@ import '../homepage.dart';
 import 'forgot_password_page.dart';
 import 'user_registration_page.dart';
 
-class LoginScreen
-    extends
-        StatefulWidget {
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
-  _LoginScreenState createState() =>
-      _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState
-    extends
-        State<
-          LoginScreen
-        > {
-  final _emailCtrl =
-      TextEditingController();
-  final _passCtrl =
-      TextEditingController();
-  final AuthService _authService =
-      AuthService();
+class _LoginScreenState extends State<LoginScreen> {
+  final _emailCtrl = TextEditingController();
+  final _passCtrl = TextEditingController();
+  final AuthService _authService = AuthService();
 
-  Future<
-    void
-  >
-  _tryLogin() async {
+  @override
+  void dispose() {
+    _emailCtrl.dispose();
+    _passCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _tryLogin() async {
     try {
       final userData = await _authService.login(
-        _emailCtrl.text,
+        _emailCtrl.text.trim(),
         _passCtrl.text,
       );
-      if (userData !=
-          null) {
+
+      if (!mounted) return;
+
+      if (userData != null) {
         saveUserData(
-          id:
-              userData['id'],
-          name:
-              userData['name'],
-          email:
-              userData['email'],
-          address:
-              userData['address'],
-          isAdmin:
-              userData['isAdmin'] ??
-              false,
+          id: userData['id'],
+          name: userData['name'],
+          email: userData['email'],
+          address: userData['address'],
+          isAdmin: userData['isAdmin'] ?? false,
         );
-        Navigator.push(
+        Navigator.of(
           context,
-          MaterialPageRoute(
-            builder:
-                (
-                  context,
-                ) =>
-                    HomePage(),
-          ),
-        );
+        ).pushReplacement(MaterialPageRoute(builder: (context) => HomePage()));
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'e-mail ou senha inválidos.',
-            ),
-          ),
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('E-mail ou senha inválidos.')),
         );
       }
-    } catch (
-      e
-    ) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Erro ao tentar fazer login.',
-          ),
-        ),
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erro ao tentar fazer login.')),
       );
     }
   }
 
   @override
-  Widget build(
-    BuildContext ctx,
-  ) {
+  Widget build(BuildContext ctx) {
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(
-        247,
-        246,
-        242,
-        1,
-      ),
+      backgroundColor: const Color.fromRGBO(247, 246, 242, 1),
       body: Padding(
-        padding: const EdgeInsets.all(
-          16.0,
-        ),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
-          crossAxisAlignment:
-              CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Center(
-              child: Image.asset(
-                'assets/smartgreen.png',
-                height:
-                    150,
-              ),
-            ),
-            SizedBox(
-              height:
-                  40,
-            ),
+            Center(child: Image.asset('assets/smartgreen.png', height: 150)),
+            const SizedBox(height: 40),
             TextField(
-              controller:
-                  _emailCtrl,
-              decoration: InputDecoration(
-                labelText:
-                    'E-mail',
-                border:
-                    OutlineInputBorder(),
+              controller: _emailCtrl,
+              decoration: const InputDecoration(
+                labelText: 'E-mail',
+                border: OutlineInputBorder(),
               ),
-              keyboardType:
-                  TextInputType.emailAddress,
+              keyboardType: TextInputType.emailAddress,
             ),
-            SizedBox(
-              height:
-                  16,
-            ),
+            const SizedBox(height: 16),
             TextField(
-              controller:
-                  _passCtrl,
-              decoration: InputDecoration(
-                labelText:
-                    'Senha',
-                border:
-                    OutlineInputBorder(),
+              controller: _passCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Senha',
+                border: OutlineInputBorder(),
               ),
-              obscureText:
-                  true,
+              obscureText: true,
             ),
-            SizedBox(
-              height:
-                  16,
-            ),
+            const SizedBox(height: 16),
             TextButton(
               onPressed: () {
-                Navigator.push(
-                  context,
+                Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder:
-                        (
-                          context,
-                        ) =>
-                            ForgotPasswordPage(),
+                    builder: (context) => const ForgotPasswordPage(),
                   ),
                 );
               },
-              child: Text(
+              child: const Text(
                 'Esqueceu a senha?',
-                style: TextStyle(
-                  color:
-                      Colors.blue,
-                ),
+                style: TextStyle(color: Colors.blue),
               ),
             ),
-            SizedBox(
-              height:
-                  16,
-            ),
-            ElevatedButton(
-              onPressed:
-                  _tryLogin,
-              child: Text(
-                'Entrar',
-              ),
-            ),
-            SizedBox(
-              height:
-                  16,
-            ),
+            const SizedBox(height: 16),
+            ElevatedButton(onPressed: _tryLogin, child: const Text('Entrar')),
+            const SizedBox(height: 16),
             OutlinedButton(
-              onPressed:
-                  () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (
-                            context,
-                          ) =>
-                              UserRegistrationPage(),
-                    ),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const UserRegistrationPage(),
                   ),
-              child: Text(
-                'Criar conta',
-              ),
+                );
+              },
+              child: const Text('Criar conta'),
             ),
           ],
         ),

@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/storeProduct.dart';
+import '../models/store_product.dart';
 
 class StoreProductService {
   final _col = FirebaseFirestore.instance.collection('products');

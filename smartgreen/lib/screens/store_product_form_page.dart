@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import '../models/storeProduct.dart';
-import '../services/storeProduct_service.dart';
+import '../models/store_product.dart';
+import '../services/store_product_service.dart';
 
-class storeProductFormPage extends StatefulWidget {
+class StoreProductFormPage extends StatefulWidget {
   final StoreProduct? storeProduct;
-  const storeProductFormPage({super.key, this.storeProduct});
+  const StoreProductFormPage({super.key, this.storeProduct});
 
   @override
-  State<storeProductFormPage> createState() => _ProductFormPageState();
+  State<StoreProductFormPage> createState() => _ProductFormPageState();
 }
 
-class _ProductFormPageState extends State<storeProductFormPage> {
+class _ProductFormPageState extends State<StoreProductFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _descCtrl = TextEditingController();

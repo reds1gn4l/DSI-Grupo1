@@ -4,277 +4,164 @@ import '../globals.dart';
 import '../models/user_model.dart';
 import '../services/firestore_service.dart';
 
-class UserRegistrationPage
-    extends
-        StatefulWidget {
-  const UserRegistrationPage({
-    super.key,
-  });
+class UserRegistrationPage extends StatefulWidget {
+  const UserRegistrationPage({super.key});
 
   @override
-  _UserRegistrationPageState createState() =>
-      _UserRegistrationPageState();
+  State<UserRegistrationPage> createState() => _UserRegistrationPageState();
 }
 
-class _UserRegistrationPageState
-    extends
-        State<
-          UserRegistrationPage
-        > {
-  final _formKey =
-      GlobalKey<
-        FormState
-      >();
-  final _nameController =
-      TextEditingController();
-  final _emailController =
-      TextEditingController();
-  final _passwordController =
-      TextEditingController();
-  final _repeatPasswordController =
-      TextEditingController();
+class _UserRegistrationPageState extends State<UserRegistrationPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _repeatPasswordController = TextEditingController();
 
-  final FirestoreService _firestoreService =
-      FirestoreService();
-  bool _isLoading =
-      false;
+  final FirestoreService _firestoreService = FirestoreService();
+  bool _isLoading = false;
 
-  void _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      setState(
-        () =>
-            _isLoading =
-                true,
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _repeatPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    final user = User.withMd5(
+      name: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+      isAdmin: false,
+    );
+
+    try {
+      final userId = await _firestoreService.addUser(user);
+
+      if (!mounted) return;
+
+      saveUserData(
+        id: userId,
+        name: user.name,
+        email: user.email,
+        address: null,
+        isAdmin: user.isAdmin,
       );
-      User user = User.withMd5(
-        name:
-            _nameController.text.trim(),
-        email:
-            _emailController.text.trim(),
-        password:
-            _passwordController.text,
-        isAdmin:
-            false,
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Usuário cadastrado com sucesso!')),
       );
-      try {
-        String userId = await _firestoreService.addUser(
-          user,
-        );
-        saveUserData(
-          id:
-              userId,
-          name:
-              user.name,
-          email:
-              user.email,
-          address:
-              null,
-          isAdmin:
-              user.isAdmin,
-        );
-        setState(
-          () =>
-              _isLoading =
-                  false,
-        );
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Usuário cadastrado com sucesso!',
-            ),
-          ),
-        );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder:
-                (
-                  context,
-                ) =>
-                    HomePage(),
-          ),
-        );
-      } catch (
-        e
-      ) {
-        setState(
-          () =>
-              _isLoading =
-                  false,
-        );
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Erro ao cadastrar usuário: $e',
-            ),
-          ),
-        );
+
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (context) => HomePage()));
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao cadastrar usuário: $e')));
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
   }
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Cadastro',
-        ),
-      ),
+      appBar: AppBar(title: const Text('Cadastro')),
       body: Padding(
-        padding: const EdgeInsets.all(
-          16.0,
-        ),
+        padding: const EdgeInsets.all(16.0),
         child: Form(
-          key:
-              _formKey,
+          key: _formKey,
           child: ListView(
             children: [
-              Center(
-                child: Image.asset(
-                  'assets/smartgreen.png',
-                  height:
-                      150,
-                ),
-              ),
-              SizedBox(
-                height:
-                    40,
-              ),
+              Center(child: Image.asset('assets/smartgreen.png', height: 150)),
+              const SizedBox(height: 40),
               TextFormField(
-                controller:
-                    _nameController,
-                decoration: InputDecoration(
-                  labelText:
-                      'Nome completo',
-                  border:
-                      OutlineInputBorder(),
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Nome completo',
+                  border: OutlineInputBorder(),
                 ),
-                validator: (
-                  value,
-                ) {
-                  if (value ==
-                          null ||
-                      value.isEmpty) {
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
                     return 'Por favor, insira seu nome completo';
                   }
                   return null;
                 },
               ),
-              SizedBox(
-                height:
-                    16,
-              ),
+              const SizedBox(height: 16),
               TextFormField(
-                controller:
-                    _emailController,
-                decoration: InputDecoration(
-                  labelText:
-                      'E-mail',
-                  border:
-                      OutlineInputBorder(),
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: 'E-mail',
+                  border: OutlineInputBorder(),
                 ),
-                keyboardType:
-                    TextInputType.emailAddress,
-                validator: (
-                  value,
-                ) {
-                  if (value ==
-                          null ||
-                      value.isEmpty) {
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
                     return 'Por favor, insira seu e-mail';
                   }
-                  if (!RegExp(
-                    r'^[^@]+@[^@]+\.[^@]+',
-                  ).hasMatch(
-                    value,
-                  )) {
+                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
                     return 'Por favor, insira um e-mail válido';
                   }
                   return null;
                 },
               ),
-              SizedBox(
-                height:
-                    16,
-              ),
+              const SizedBox(height: 16),
               TextFormField(
-                controller:
-                    _passwordController,
-                decoration: InputDecoration(
-                  labelText:
-                      'Senha',
-                  border:
-                      OutlineInputBorder(),
+                controller: _passwordController,
+                decoration: const InputDecoration(
+                  labelText: 'Senha',
+                  border: OutlineInputBorder(),
                 ),
-                obscureText:
-                    true,
-                validator: (
-                  value,
-                ) {
-                  if (value ==
-                          null ||
-                      value.isEmpty) {
+                obscureText: true,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
                     return 'Por favor, insira sua senha';
                   }
-                  if (value.length <
-                      6) {
+                  if (value.length < 6) {
                     return 'Senha deve ter pelo menos 6 caracteres';
                   }
                   return null;
                 },
               ),
-              SizedBox(
-                height:
-                    16,
-              ),
+              const SizedBox(height: 16),
               TextFormField(
-                controller:
-                    _repeatPasswordController,
-                decoration: InputDecoration(
-                  labelText:
-                      'Repetir senha',
-                  border:
-                      OutlineInputBorder(),
+                controller: _repeatPasswordController,
+                decoration: const InputDecoration(
+                  labelText: 'Repetir senha',
+                  border: OutlineInputBorder(),
                 ),
-                obscureText:
-                    true,
-                validator: (
-                  value,
-                ) {
-                  if (value ==
-                          null ||
-                      value.isEmpty) {
+                obscureText: true,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
                     return 'Por favor, repita sua senha';
                   }
-                  if (value !=
-                      _passwordController.text) {
+                  if (value != _passwordController.text) {
                     return 'Senhas não coincidem';
                   }
                   return null;
                 },
               ),
-              SizedBox(
-                height:
-                    40,
-              ),
+              const SizedBox(height: 40),
               _isLoading
-                  ? Center(
-                    child:
-                        CircularProgressIndicator(),
-                  )
+                  ? const Center(child: CircularProgressIndicator())
                   : ElevatedButton(
-                    onPressed:
-                        _submitForm,
-                    child: Text(
-                      'Cadastrar',
-                    ),
+                    onPressed: _submitForm,
+                    child: const Text('Cadastrar'),
                   ),
             ],
           ),

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../models/storeProduct.dart';
-import '../services/storeProduct_service.dart';
-import 'storeProduct_form_page.dart';
-import 'storeProduct_detail_page.dart';
+import '../models/store_product.dart';
+import '../services/store_product_service.dart';
+import 'store_product_form_page.dart';
+import 'store_product_detail_page.dart';
 
 class ProductListPage extends StatefulWidget {
   const ProductListPage({super.key});
@@ -60,7 +60,7 @@ class _ProductListPageState extends State<ProductListPage> {
         onPressed:
             () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const storeProductFormPage()),
+              MaterialPageRoute(builder: (_) => const StoreProductFormPage()),
             ),
         icon: const Icon(Icons.add),
         label: const Text('Novo produto'),
@@ -153,7 +153,7 @@ class _ProductListPageState extends State<ProductListPage> {
                               context,
                               MaterialPageRoute(
                                 builder:
-                                    (_) => storeProductDetailPage(
+                                    (_) => StoreProductDetailPage(
                                       storeProductId: p.id,
                                     ),
                               ),
