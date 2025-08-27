@@ -20,6 +20,8 @@ class _AddressFormPageState extends State<AddressFormPage> {
   final cepController = TextEditingController();
   final complementController = TextEditingController();
 
+  Color get _green => const Color(0xFF2E7D32);
+
   @override
   void initState() {
     super.initState();
@@ -31,19 +33,29 @@ class _AddressFormPageState extends State<AddressFormPage> {
     }
   }
 
+  @override
+  void dispose() {
+    streetController.dispose();
+    cityController.dispose();
+    cepController.dispose();
+    complementController.dispose();
+    super.dispose();
+  }
+
   InputDecoration _inputDecoration(String label) {
     return InputDecoration(
       labelText: label,
       filled: true,
-      fillColor: const Color(0xFFF5F5F5),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      fillColor: Colors.white,
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.grey),
+        borderSide: const BorderSide(color: Colors.black12),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.green, width: 2),
+        borderSide: BorderSide(color: _green, width: 2),
       ),
     );
   }
@@ -54,103 +66,105 @@ class _AddressFormPageState extends State<AddressFormPage> {
     final isEditing = widget.address != null;
 
     return Scaffold(
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: Text(isEditing ? 'Editar Endereço' : 'Novo Endereço'),
-        backgroundColor: Colors.green,
+        centerTitle: true,
+        backgroundColor: _green,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: streetController,
-                decoration: _inputDecoration('Rua'),
-                validator: (value) => value!.isEmpty ? 'Informe a rua' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: cityController,
-                decoration: _inputDecoration('Cidade'),
-                validator:
-                    (value) => value!.isEmpty ? 'Informe a cidade' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: cepController,
-                decoration: _inputDecoration('CEP'),
-                validator: (value) => value!.isEmpty ? 'Informe o CEP' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: complementController,
-                decoration: _inputDecoration('Complemento'),
-              ),
-              const SizedBox(height: 20),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              children: [
+                TextFormField(
+                  controller: streetController,
+                  decoration: _inputDecoration('Rua'),
+                  validator: (value) => value!.isEmpty ? 'Informe a rua' : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: cityController,
+                  decoration: _inputDecoration('Cidade'),
+                  validator:
+                      (value) => value!.isEmpty ? 'Informe a cidade' : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: cepController,
+                  decoration: _inputDecoration('CEP'),
+                  validator: (value) => value!.isEmpty ? 'Informe o CEP' : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: complementController,
+                  decoration: _inputDecoration('Complemento'),
+                ),
+                const SizedBox(height: 20),
 
-              /// Botão de Mapa
-              CustomButton(
-                label: 'Ver/Editar no Mapa',
-                icon: Icons.map,
-                backgroundColor: Colors.blue,
-                textColor: Colors.white,
-                onPressed: () async {
-                  final updatedAddress = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (_) => MapPage(
-                            address: Address(
-                              id: widget.address?.id ?? '',
-                              street: streetController.text,
-                              city: cityController.text,
-                              cep: cepController.text,
-                              complement: complementController.text,
+                CustomButton(
+                  label: 'Ver/Editar no Mapa',
+                  icon: Icons.map,
+                  backgroundColor: Colors.blue,
+                  textColor: Colors.white,
+                  onPressed: () async {
+                    final updatedAddress = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (_) => MapPage(
+                              address: Address(
+                                id: widget.address?.id ?? '',
+                                street: streetController.text,
+                                city: cityController.text,
+                                cep: cepController.text,
+                                complement: complementController.text,
+                              ),
                             ),
-                          ),
-                    ),
-                  );
-
-                  if (updatedAddress != null && updatedAddress is Address) {
-                    setState(() {
-                      streetController.text = updatedAddress.street;
-                      cityController.text = updatedAddress.city;
-                      cepController.text = updatedAddress.cep;
-                    });
-                  }
-                },
-              ),
-
-              const SizedBox(height: 20),
-
-              /// Botão de Salvar/Editar
-              CustomButton(
-                label: isEditing ? 'Salvar Alterações' : 'Salvar Endereço',
-                icon: Icons.check_circle,
-                backgroundColor: Colors.green,
-                textColor: Colors.white,
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    final address = Address(
-                      id: widget.address?.id ?? '',
-                      street: streetController.text,
-                      city: cityController.text,
-                      cep: cepController.text,
-                      complement: complementController.text,
+                      ),
                     );
 
-                    if (isEditing) {
-                      await addressService.updateAddress(address);
-                    } else {
-                      await addressService.addAddress(address);
+                    if (updatedAddress != null && updatedAddress is Address) {
+                      setState(() {
+                        streetController.text = updatedAddress.street;
+                        cityController.text = updatedAddress.city;
+                        cepController.text = updatedAddress.cep;
+                      });
                     }
+                  },
+                ),
 
-                    if (context.mounted) Navigator.pop(context);
-                  }
-                },
-              ),
-            ],
+                const SizedBox(height: 20),
+
+                CustomButton(
+                  label: isEditing ? 'Salvar Alterações' : 'Salvar Endereço',
+                  icon: Icons.check_circle,
+                  backgroundColor: _green,
+                  textColor: Colors.white,
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
+                      final address = Address(
+                        id: widget.address?.id ?? '',
+                        street: streetController.text,
+                        city: cityController.text,
+                        cep: cepController.text,
+                        complement: complementController.text,
+                      );
+
+                      if (isEditing) {
+                        await addressService.updateAddress(address);
+                      } else {
+                        await addressService.addAddress(address);
+                      }
+
+                      if (context.mounted) Navigator.pop(context);
+                    }
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),

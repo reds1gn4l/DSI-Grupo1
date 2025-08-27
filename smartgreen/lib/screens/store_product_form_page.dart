@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/store_product.dart';
 import '../services/store_product_service.dart';
+import '../widgets/custom_button.dart';
 
 class StoreProductFormPage extends StatefulWidget {
   final StoreProduct? storeProduct;
@@ -26,6 +27,8 @@ class _ProductFormPageState extends State<StoreProductFormPage> {
   final _imgCtrl = TextEditingController();
 
   bool _saving = false;
+
+  Color get _green => const Color(0xFF2E7D32);
 
   @override
   void initState() {
@@ -122,18 +125,41 @@ class _ProductFormPageState extends State<StoreProductFormPage> {
         context,
       ).showSnackBar(SnackBar(content: Text('Falha ao salvar: $e')));
     } finally {
-      if (mounted) {
-        setState(() => _saving = false);
-      }
+      if (mounted) setState(() => _saving = false);
     }
   }
+
+  InputDecoration _dec(String label) => InputDecoration(
+    labelText: label,
+    filled: true,
+    fillColor: Colors.white,
+    isDense: true,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Colors.black12),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Colors.black12),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: _green),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.storeProduct != null;
 
     return Scaffold(
-      appBar: AppBar(title: Text(isEdit ? 'Editar produto' : 'Novo produto')),
+      backgroundColor: Colors.grey.shade50,
+      appBar: AppBar(
+        backgroundColor: _green,
+        centerTitle: true,
+        title: Text(isEdit ? 'Editar produto' : 'Novo produto'),
+      ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -144,7 +170,7 @@ class _ProductFormPageState extends State<StoreProductFormPage> {
                 children: [
                   TextFormField(
                     controller: _nameCtrl,
-                    decoration: const InputDecoration(labelText: 'Nome *'),
+                    decoration: _dec('Nome *'),
                     validator:
                         (v) =>
                             (v == null || v.trim().isEmpty)
@@ -154,54 +180,40 @@ class _ProductFormPageState extends State<StoreProductFormPage> {
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _descCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Descrição do Produto',
-                    ),
+                    decoration: _dec('Descrição do Produto'),
                     maxLines: 3,
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _descPlantaCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Descrição da Planta',
-                    ),
+                    decoration: _dec('Descrição da Planta'),
                     maxLines: 2,
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _fxTempCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Faixa de Temperatura',
-                    ),
+                    decoration: _dec('Faixa de Temperatura'),
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _fxUmidadeCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Faixa de Umidade',
-                    ),
+                    decoration: _dec('Faixa de Umidade'),
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _tempoSolCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Tempo de Sol',
-                    ),
+                    decoration: _dec('Tempo de Sol'),
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _valDiasCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Validade (dias)',
-                    ),
+                    decoration: _dec('Validade (dias)'),
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _dataPlantioCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Data de Plantio (DD-MM-YYYY)',
-                    ),
+                    decoration: _dec('Data de Plantio (DD-MM-YYYY)'),
                     keyboardType: TextInputType.datetime,
                   ),
                   const SizedBox(height: 12),
@@ -210,9 +222,7 @@ class _ProductFormPageState extends State<StoreProductFormPage> {
                       Expanded(
                         child: TextFormField(
                           controller: _priceCtrl,
-                          decoration: const InputDecoration(
-                            labelText: 'Preço (R\$)',
-                          ),
+                          decoration: _dec('Preço (R\$)'),
                           keyboardType: const TextInputType.numberWithOptions(
                             decimal: true,
                           ),
@@ -222,9 +232,7 @@ class _ProductFormPageState extends State<StoreProductFormPage> {
                       Expanded(
                         child: TextFormField(
                           controller: _stockCtrl,
-                          decoration: const InputDecoration(
-                            labelText: 'Estoque',
-                          ),
+                          decoration: _dec('Estoque'),
                           keyboardType: TextInputType.number,
                         ),
                       ),
@@ -233,14 +241,12 @@ class _ProductFormPageState extends State<StoreProductFormPage> {
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _catCtrl,
-                    decoration: const InputDecoration(labelText: 'Categoria'),
+                    decoration: _dec('Categoria'),
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _imgCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'URL da imagem',
-                    ),
+                    decoration: _dec('URL da imagem'),
                     onChanged: (_) => setState(() {}),
                   ),
                   if (_imgCtrl.text.trim().isNotEmpty) ...[
@@ -257,26 +263,15 @@ class _ProductFormPageState extends State<StoreProductFormPage> {
                     ),
                   ],
                   const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _saving ? null : _save,
-                      icon:
-                          _saving
-                              ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                              : const Icon(Icons.save),
-                      label: Text(
+                  CustomButton(
+                    label:
                         _saving
                             ? 'Salvando...'
                             : (isEdit ? 'Salvar alterações' : 'Salvar'),
-                      ),
-                    ),
+                    icon: Icons.save,
+                    backgroundColor: _green,
+                    textColor: Colors.white,
+                    onPressed: _saving ? null : _save,
                   ),
                 ],
               ),

@@ -1,191 +1,398 @@
+// lib/screens/catalog_page.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/product_service.dart';
+import '../services/cart_service.dart';
 import '../models/product.dart';
-import '../globals.dart';
+import '../shared/searchable_tab.dart';
+import 'cart_page.dart'; // fica só como fallback, se não passarem o callback
 import 'product_detail_page.dart';
-import 'cart_page.dart';
-import 'store_product_list_page.dart';
 
 class CatalogPage extends StatefulWidget {
-  const CatalogPage({super.key});
+  const CatalogPage({super.key, this.goToCart});
+  final VoidCallback? goToCart; // <--- callback para trocar a aba
 
   @override
-  State<CatalogPage> createState() => _CatalogPageState();
+  CatalogPageState createState() => CatalogPageState();
 }
 
-class _CatalogPageState extends State<CatalogPage> {
+class CatalogPageState extends State<CatalogPage> with SearchableTab {
   final ProductService _productService = ProductService();
   String _searchQuery = '';
 
   @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final crossAxisCount = 2;
-    final itemWidth = (screenWidth - 30) / crossAxisCount;
-    final itemHeight = 250;
-    final aspectRatio = itemWidth / itemHeight;
+  String get searchHint => 'Buscar produto...';
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Catálogo de Sementes'),
-        centerTitle: true,
-        toolbarHeight: 60,
-        backgroundColor: Colors.green,
+  @override
+  void applySearch(String query) {
+    setState(() => _searchQuery = query.trim().toLowerCase());
+  }
+
+  Color get _green => const Color(0xFF2E7D32);
+
+  // SnackBar que flutua acima da barra do carrinho
+  SnackBar _cartSnack(String message, {VoidCallback? onUndo}) {
+    const double cartBarHeight = 60.0;
+    final double bottomGap =
+        cartBarHeight + 16 + MediaQuery.of(context).padding.bottom;
+
+    return SnackBar(
+      content: Text(message),
+      behavior: SnackBarBehavior.floating,
+      margin: EdgeInsets.fromLTRB(12, 0, 12, bottomGap),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      duration: const Duration(seconds: 3),
+      action:
+          onUndo == null
+              ? null
+              : SnackBarAction(label: 'Desfazer', onPressed: onUndo),
+    );
+  }
+
+  Future<void> _quickAdd(Product p) async {
+    final cart = context.read<CartService>();
+    cart.addToCart(p); // adiciona 1
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        _cartSnack(
+          '"${p.cientificName}" adicionado ao carrinho',
+          onUndo: () {
+            try {
+              final item = cart.items.firstWhere((e) => e.product.id == p.id);
+              final newQty = item.quantity - 1;
+              if (newQty <= 0) {
+                cart.removeFromCart(p);
+              } else {
+                cart.updateQuantity(p, newQty);
+              }
+            } catch (_) {}
+          },
+        ),
+      );
+  }
+
+  Future<void> _chooseQtyAndAdd(Product p) async {
+    int qty = 1;
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: false,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              decoration: const InputDecoration(
-                labelText: 'Buscar produto...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
-              ),
-              textInputAction: TextInputAction.search,
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value.trim().toLowerCase();
-                });
-              },
-              onSubmitted: (value) {
-                setState(() {
-                  _searchQuery = value.trim().toLowerCase();
-                });
-              },
-            ),
-          ),
-          if (getUserData()?.isAdmin == true)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => ProductListPage()),
-                    );
-                  },
-                  child: const Text('Ver lista de produtos'),
-                ),
-              ),
-            ),
-          Expanded(
-            child: StreamBuilder<List<Product>>(
-              stream: _productService.getProducts(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return const Center(child: Text('Erro ao carregar produtos'));
-                }
-
-                List<Product> products = snapshot.data ?? [];
-
-                if (_searchQuery.isNotEmpty) {
-                  products =
-                      products
-                          .where(
-                            (p) => p.cientificName.toLowerCase().contains(
-                              _searchQuery,
-                            ),
-                          )
-                          .toList();
-                }
-
-                if (products.isEmpty) {
-                  return const Center(
-                    child: Text('Nenhum produto encontrado.'),
-                  );
-                }
-
-                return GridView.builder(
-                  padding: const EdgeInsets.all(10),
-                  itemCount: products.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    childAspectRatio: aspectRatio,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (context, setModal) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    p.cientificName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  itemBuilder: (context, index) {
-                    final product = products[index];
-                    return Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        tooltip: 'Diminuir',
+                        onPressed: qty > 1 ? () => setModal(() => qty--) : null,
+                        icon: const Icon(Icons.remove_circle_outline),
                       ),
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (_) => ProductDetailPage(product: product),
-                            ),
-                          );
-                        },
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              child: Hero(
-                                tag: product.id,
-                                child: ClipRRect(
-                                  borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(12),
-                                    topRight: Radius.circular(12),
-                                  ),
-                                  child: Image.network(
-                                    product.imageURL,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                product.cientificName,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0,
-                              ),
-                              child: Text(
-                                'R\$ ${product.precoUnt.toStringAsFixed(2)}',
-                                style: TextStyle(color: Colors.green[800]),
-                              ),
-                            ),
-                          ],
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          '$qty',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
-                    );
-                  },
-                );
-              },
-            ),
+                      IconButton(
+                        tooltip: 'Aumentar',
+                        onPressed: () => setModal(() => qty++),
+                        icon: const Icon(Icons.add_circle_outline),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _green,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      icon: const Icon(Icons.add_shopping_cart),
+                      label: Text(
+                        'Adicionar $qty ao carrinho',
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      onPressed: () {
+                        final cart = context.read<CartService>();
+                        for (var i = 0; i < qty; i++) {
+                          cart.addToCart(p);
+                        }
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context)
+                          ..hideCurrentSnackBar()
+                          ..showSnackBar(
+                            _cartSnack(
+                              '$qty × "${p.cientificName}" adicionados',
+                            ),
+                          );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    const crossAxisCount = 2;
+    final itemWidth = (screenWidth - 30) / crossAxisCount;
+    const itemHeight = 280.0;
+    final aspectRatio = itemWidth / itemHeight;
+
+    return Column(
+      children: [
+        Expanded(
+          child: StreamBuilder<List<Product>>(
+            stream: _productService.getProducts(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return const Center(child: Text('Erro ao carregar produtos'));
+              }
+
+              List<Product> products = snapshot.data ?? [];
+              if (_searchQuery.isNotEmpty) {
+                products =
+                    products
+                        .where(
+                          (p) => p.cientificName.toLowerCase().contains(
+                            _searchQuery,
+                          ),
+                        )
+                        .toList();
+              }
+
+              if (products.isEmpty) {
+                return const Center(child: Text('Nenhum produto encontrado.'));
+              }
+
+              return Stack(
+                children: [
+                  // grade de produtos
+                  GridView.builder(
+                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 90),
+                    itemCount: products.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      childAspectRatio: aspectRatio,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                    ),
+                    itemBuilder: (context, index) {
+                      final product = products[index];
+                      return Card(
+                        elevation: 3,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (_) => ProductDetailPage(product: product),
+                              ),
+                            );
+                          },
+                          onLongPress: () => _chooseQtyAndAdd(product),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(
+                                child: Hero(
+                                  tag: product.id,
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(12),
+                                      topRight: Radius.circular(12),
+                                    ),
+                                    child: Image.network(
+                                      product.imageURL,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (_, __, ___) => const Center(
+                                            child: Icon(Icons.image),
+                                          ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  10,
+                                  8,
+                                  10,
+                                  0,
+                                ),
+                                child: Text(
+                                  product.cientificName,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  10,
+                                  2,
+                                  10,
+                                  8,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      'R\$ ${product.precoUnt.toStringAsFixed(2)}',
+                                      style: TextStyle(
+                                        color: Colors.green.shade800,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    SizedBox(
+                                      height: 36,
+                                      width: 44,
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: _green,
+                                          foregroundColor: Colors.white,
+                                          padding: EdgeInsets.zero,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                          ),
+                                        ),
+                                        onPressed: () => _quickAdd(product),
+                                        onLongPress:
+                                            () => _chooseQtyAndAdd(product),
+                                        child: const Icon(
+                                          Icons.add_shopping_cart,
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+                  // barra flutuante do carrinho (resumo, sem botão)
+                  Consumer<CartService>(
+                    builder: (context, cart, _) {
+                      if (cart.items.isEmpty) return const SizedBox.shrink();
+                      final total = cart.totalPrice.toStringAsFixed(2);
+                      final count = cart.items.fold<int>(
+                        0,
+                        (sum, e) => sum + e.quantity,
+                      );
+
+                      return Positioned(
+                        left: 10,
+                        right: 10,
+                        bottom: 10,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () {
+                            // Vai para a ABA Carrinho se o callback foi passado;
+                            // caso contrário, cai no fallback abrindo a CartPage.
+                            if (widget.goToCart != null) {
+                              widget.goToCart!();
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const CartPage(),
+                                ),
+                              );
+                            }
+                          },
+                          child: Material(
+                            elevation: 4,
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.black12),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.shopping_cart_outlined),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      '$count item${count == 1 ? '' : 's'} • R\$ $total',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                  const Icon(Icons.chevron_right),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              );
+            },
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const CartPage()),
-          );
-        },
-        backgroundColor: Colors.green,
-        child: const Icon(Icons.shopping_cart),
-      ),
+        ),
+      ],
     );
   }
 }
