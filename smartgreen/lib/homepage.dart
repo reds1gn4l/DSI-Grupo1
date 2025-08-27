@@ -68,7 +68,7 @@ class HomePageState extends State<HomePage> {
       case 0:
         return _plantKey.currentState?.searchHint ?? 'Buscar Planta';
       case 1:
-        return _catalogKey.currentState?.searchHint ?? 'Buscar produto...';
+        return _catalogKey.currentState?.searchHint ?? 'Buscar Produto';
       case 2:
         return _supplyKey.currentState?.searchHint ?? 'Buscar Item';
       case 3:

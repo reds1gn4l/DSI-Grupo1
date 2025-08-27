@@ -21,7 +21,7 @@ class CatalogPageState extends State<CatalogPage> with SearchableTab {
   String _searchQuery = '';
 
   @override
-  String get searchHint => 'Buscar produto...';
+  String get searchHint => 'Buscar Produto';
 
   @override
   void applySearch(String query) {
@@ -58,7 +58,7 @@ class CatalogPageState extends State<CatalogPage> with SearchableTab {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         _cartSnack(
-          '"${p.cientificName}" adicionado ao carrinho',
+          '"${p.cientificName}" Adicionado ao carrinho',
           onUndo: () {
             try {
               final item = cart.items.firstWhere((e) => e.product.id == p.id);

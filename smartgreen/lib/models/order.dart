@@ -1,44 +1,44 @@
-import 'cart_item.dart';
-import 'address.dart';
+// lib/models/order.dart
+import 'order_item.dart';
 
 class Order {
   final String id;
-  final List<CartItem> items;
-  final Address address;
+  final List<OrderItem> items;
+  final String addressId; // <- só referência ao endereço
   final String paymentMethod;
   final double total;
   final DateTime createdAt;
 
-  Order({
+  const Order({
     required this.id,
     required this.items,
-    required this.address,
+    required this.addressId,
     required this.paymentMethod,
     required this.total,
     required this.createdAt,
   });
 
-  Map<String, dynamic> toMap() {
-    return {
-      'items': items.map((item) => item.toMap()).toList(),
-      'address': address.toMap(),
-      'paymentMethod': paymentMethod,
-      'total': total,
-      'createdAt': createdAt.toIso8601String(),
-    };
-  }
+  Map<String, dynamic> toMap() => {
+    'items': items.map((e) => e.toMap()).toList(),
+    'addressId': addressId,
+    'paymentMethod': paymentMethod,
+    'total': total,
+    'createdAt': createdAt.toIso8601String(),
+  };
 
   factory Order.fromMap(String id, Map<String, dynamic> data) {
+    final itemsData = (data['items'] as List?) ?? const [];
     return Order(
       id: id,
       items:
-          (data['items'] as List)
-              .map((item) => CartItem.fromMap(item))
+          itemsData
+              .whereType<Map<String, dynamic>>()
+              .map(OrderItem.fromMap)
               .toList(),
-      address: Address.fromMap('', data['address']),
-      paymentMethod: data['paymentMethod'],
-      total: (data['total'] ?? 0).toDouble(),
-      createdAt: DateTime.parse(data['createdAt']),
+      addressId: (data['addressId'] ?? '') as String,
+      paymentMethod: (data['paymentMethod'] ?? '') as String,
+      total: (data['total'] is num) ? (data['total'] as num).toDouble() : 0.0,
+      createdAt: DateTime.tryParse(data['createdAt'] ?? '') ?? DateTime.now(),
     );
   }
 }
