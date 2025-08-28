@@ -28,12 +28,13 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final _newPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
+  late final ForgotPasswordController _controller;
+
   bool _emailValidated = false;
   String? _userId;
   String? _errorMessage;
   bool _loading = false;
-
-  late final ForgotPasswordController _controller;
+  bool _obscure = true;
 
   @override
   void initState() {
@@ -48,7 +49,26 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     super.dispose();
   }
 
+  String? _emailValidator(String? value) {
+    final v = (value ?? '').trim();
+    if (v.isEmpty) return 'Digite um e-mail';
+    final rx = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+    if (!rx.hasMatch(v)) return 'Digite um e-mail válido';
+    return null;
+  }
+
+  String? _passwordValidator(String? value) {
+    final v = value ?? '';
+    if (v.isEmpty) return 'Digite a nova senha';
+    if (v.length < 6) return 'A senha deve ter pelo menos 6 caracteres';
+    return null;
+  }
+
   Future<void> _validateEmail() async {
+    FocusScope.of(context).unfocus();
+
+    if (!_formKey.currentState!.validate()) return;
+
     setState(() {
       _loading = true;
       _errorMessage = null;
@@ -58,7 +78,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       final userId = await _controller.validateEmail(
         _emailController.text.trim(),
       );
-
       if (!mounted) return;
 
       if (userId != null) {
@@ -87,7 +106,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   }
 
   Future<void> _updatePassword() async {
+    FocusScope.of(context).unfocus();
+
     if (_userId == null) return;
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() {
       _loading = true;
@@ -96,7 +118,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
     try {
       await _controller.changePassword(_userId!, _newPasswordController.text);
-
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -108,6 +129,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         _userId = null;
         _emailController.clear();
         _newPasswordController.clear();
+        _obscure = true;
       });
     } catch (_) {
       if (!mounted) return;
@@ -118,20 +140,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
-  }
-
-  String? _emailValidator(String? value) {
-    final v = (value ?? '').trim();
-    if (v.isEmpty) return 'Digite um e-mail';
-    // validação simples; se quiser, troque por RegExp mais completa
-    if (!v.contains('@') || !v.contains('.')) return 'Digite um e-mail válido';
-    return null;
-  }
-
-  String? _passwordValidator(String? value) {
-    final v = value ?? '';
-    if (v.length < 6) return 'A senha deve ter pelo menos 6 caracteres';
-    return null;
   }
 
   @override
@@ -154,6 +162,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             child: SingleChildScrollView(
               child: Form(
                 key: _formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Card(
                   elevation: theme.cardTheme.elevation ?? 1,
                   shape: RoundedRectangleBorder(
@@ -173,6 +182,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                             ),
                             validator: _emailValidator,
                             enabled: !_loading,
+                            textInputAction: TextInputAction.done,
+                            onFieldSubmitted: (_) => _validateEmail(),
                           ),
                           const SizedBox(height: 16),
                           SizedBox(
@@ -181,14 +192,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                               label:
                                   _loading ? 'Validando...' : 'Validar E-mail',
                               icon: Icons.verified_user,
-                              onPressed:
-                                  _loading
-                                      ? null
-                                      : () {
-                                        if (_formKey.currentState!.validate()) {
-                                          _validateEmail();
-                                        }
-                                      },
+                              onPressed: _loading ? null : _validateEmail,
                               backgroundColor: cs.primary,
                               textColor: cs.onPrimary,
                             ),
@@ -196,12 +200,31 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         ] else ...[
                           TextFormField(
                             controller: _newPasswordController,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Nova Senha',
+                              suffixIcon: IconButton(
+                                tooltip:
+                                    _obscure
+                                        ? 'Mostrar senha'
+                                        : 'Ocultar senha',
+                                icon: Icon(
+                                  _obscure
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                ),
+                                onPressed:
+                                    _loading
+                                        ? null
+                                        : () => setState(() {
+                                          _obscure = !_obscure;
+                                        }),
+                              ),
                             ),
-                            obscureText: true,
+                            obscureText: _obscure,
                             validator: _passwordValidator,
                             enabled: !_loading,
+                            textInputAction: TextInputAction.done,
+                            onFieldSubmitted: (_) => _updatePassword(),
                           ),
                           const SizedBox(height: 16),
                           SizedBox(
@@ -209,14 +232,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                             child: CustomButton(
                               label: _loading ? 'Salvando...' : 'Alterar Senha',
                               icon: Icons.lock_reset,
-                              onPressed:
-                                  _loading
-                                      ? null
-                                      : () {
-                                        if (_formKey.currentState!.validate()) {
-                                          _updatePassword();
-                                        }
-                                      },
+                              onPressed: _loading ? null : _updatePassword,
                               backgroundColor: cs.primary,
                               textColor: cs.onPrimary,
                             ),
