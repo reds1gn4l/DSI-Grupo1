@@ -109,7 +109,7 @@ class _AddressFormPageState extends State<AddressFormPage> {
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: _green, width: 2),
       ),
-      counterText: '', // esconde contador do maxLength
+      counterText: '',
     );
   }
 
@@ -140,7 +140,6 @@ class _AddressFormPageState extends State<AddressFormPage> {
   String? _validateCidadeBairro(String? v, String rotulo) {
     final s = (v ?? '').trim();
     if (s.isEmpty) return 'Informe $rotulo';
-    // letras (com acento), espaço, hífen, apóstrofo, mínimo 2
     if (!RegExp(r"^[A-Za-zÀ-ÿ' -]{2,}$").hasMatch(s)) {
       return '$rotulo inválido';
     }
@@ -172,7 +171,6 @@ class _AddressFormPageState extends State<AddressFormPage> {
 
   // ---------- Ações ----------
   Future<void> _openMap() async {
-    // Em "Novo endereço" exigimos CEP antes de abrir o mapa
     if (!_isEditing && cepController.text.trim().isEmpty) {
       await showDialog<void>(
         context: context,
@@ -236,7 +234,6 @@ class _AddressFormPageState extends State<AddressFormPage> {
       return;
     }
 
-    // Normalização final
     final cepFmt = _formatCep(cepController.text);
     final uf = stateController.text.trim().toUpperCase();
     final cidade = _sanitize(cityController.text);
@@ -287,7 +284,6 @@ class _AddressFormPageState extends State<AddressFormPage> {
       ),
       body: Column(
         children: [
-          // Conteúdo rolável (form + botão azul)
           Expanded(
             child: SafeArea(
               bottom: false,
@@ -308,7 +304,6 @@ class _AddressFormPageState extends State<AddressFormPage> {
                               decoration: _inputDecoration('CEP*'),
                               validator: _validateCep,
                               onChanged: (v) {
-                                // ajuda leve a manter o formato 99999-999
                                 final d = _onlyDigits(v);
                                 if (d.length <= 8) {
                                   if (d.length >= 6) {
@@ -400,15 +395,15 @@ class _AddressFormPageState extends State<AddressFormPage> {
                       TextFormField(
                         controller: referenceController,
                         maxLength: 80,
-                        decoration: _inputDecoration('Referência (opcional)'),
+                        decoration: _inputDecoration('Referência'),
                       ),
                       const SizedBox(height: 16),
 
-                      // Botão azul (dentro da área rolável)
+                      // Botão azul (usa o azul do tema)
                       CustomButton(
                         label: 'Visualizar no mapa',
                         icon: Icons.map,
-                        backgroundColor: Colors.blue,
+                        backgroundColor: Theme.of(context).colorScheme.tertiary,
                         textColor: Colors.white,
                         onPressed: _openMap,
                       ),

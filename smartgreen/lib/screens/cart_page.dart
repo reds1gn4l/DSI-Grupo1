@@ -1,5 +1,7 @@
+// lib/screens/cart_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../services/cart_service.dart';
 import '../models/cart_item.dart';
 import 'address_selection_page.dart';
@@ -51,6 +53,8 @@ class CartContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     final cart = context.watch<CartService>();
 
     if (cart.items.isEmpty) {
@@ -59,18 +63,20 @@ class CartContent extends StatelessWidget {
 
     return Column(
       children: [
+        // Lista de itens
         Expanded(
           child: ListView.builder(
+            padding: const EdgeInsets.only(bottom: 8),
             itemCount: cart.items.length,
             itemBuilder: (context, index) {
-              CartItem item = cart.items[index];
+              final CartItem item = cart.items[index];
               final price = item.product.precoUnt;
               final quantity = item.quantity;
               final subtotal = price * quantity;
 
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                elevation: 4,
+                elevation: theme.cardTheme.elevation ?? 3,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -88,39 +94,36 @@ class CartContent extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 12),
+                      // Descrição
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               item.product.cientificName,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              _money(
-                                price,
-                              ), // <- NBSP evita quebra entre R$ e valor
-                              style: TextStyle(
-                                color: Colors.green[700],
-                                fontSize: 14,
+                              _money(price),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: cs.primary,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
+                                Text(
                                   'Subtotal:',
-                                  style: TextStyle(fontSize: 13),
+                                  style: theme.textTheme.bodySmall,
                                 ),
                                 Text(
-                                  // <- NBSP também no subtotal
                                   '${_money(price)} × $quantity = ${_money(subtotal)}',
-                                  style: const TextStyle(fontSize: 13),
+                                  style: theme.textTheme.bodySmall,
                                 ),
                               ],
                             ),
@@ -165,44 +168,58 @@ class CartContent extends StatelessWidget {
           ),
         ),
 
-        // Rodapé: total + botão Continuar
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Total: ${_money(cart.totalPrice)}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 10),
-              CustomButton(
-                label: 'Continuar',
-                icon: Icons.arrow_forward,
-                backgroundColor: Colors.green,
-                onPressed: () async {
-                  final selectedAddress = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const AddressSelectionPage(),
-                    ),
-                  );
-                  if (context.mounted && selectedAddress != null) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (_) =>
-                                PaymentPage(selectedAddress: selectedAddress),
-                      ),
-                    );
-                  }
-                },
+        // Rodapé fixo: total + botão Continuar (padronizado com o app)
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: cs.surface,
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x14000000),
+                blurRadius: 8,
+                offset: Offset(0, -2),
               ),
             ],
+          ),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Total: ${_money(cart.totalPrice)}',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                CustomButton(
+                  label: 'Continuar',
+                  icon: Icons.arrow_forward,
+                  backgroundColor: cs.primary,
+                  textColor: cs.onPrimary,
+                  onPressed: () async {
+                    final selectedAddress = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AddressSelectionPage(),
+                      ),
+                    );
+                    if (context.mounted && selectedAddress != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (_) =>
+                                  PaymentPage(selectedAddress: selectedAddress),
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ],

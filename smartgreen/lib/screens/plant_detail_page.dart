@@ -1,3 +1,4 @@
+// lib/screens/plant_detail_page.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -39,6 +40,9 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+
     if (plant == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -51,8 +55,11 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(plant!.name.isNotEmpty ? plant!.name : 'Planta sem nome'),
+        backgroundColor: cs.primary,
+        foregroundColor: cs.onPrimary,
         actions: [
           IconButton(
+            tooltip: 'Editar',
             icon: const Icon(Icons.edit),
             onPressed: () {
               Navigator.push(
@@ -62,6 +69,7 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
             },
           ),
           IconButton(
+            tooltip: 'Excluir',
             icon: const Icon(Icons.delete),
             onPressed: () => _confirmDeletion(context),
           ),
@@ -69,29 +77,33 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
       ),
       body: Column(
         children: [
+          // Faixa de título usando as cores do tema
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 12),
-            color: const Color(0xFF2E7D32),
-            child: const Center(
+            color: cs.primary,
+            child: Center(
               child: Text(
                 'Detalhes da Planta',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
+                style: tt.titleMedium?.copyWith(
+                  color: cs.onPrimary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ),
           ),
+
+          // Conteúdo
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _detailRow('Data de plantio:', plantingText),
+                  _detailRow(context, 'Data de plantio:', plantingText),
                   const SizedBox(height: 16),
+
+                  // Temperatura
                   _statusBar(
                     label: 'Temperatura',
                     min: -10,
@@ -115,6 +127,8 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
+
+                  // Umidade
                   _statusBar(
                     label: 'Umidade',
                     min: 0,
@@ -138,6 +152,8 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
+
+                  // Luz
                   _statusBar(
                     label: 'Luz Solar (últimas 24h)',
                     min: 0,
@@ -165,12 +181,16 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
     );
   }
 
-  Widget _detailRow(String label, String value) {
+  Widget _detailRow(BuildContext context, String label, String value) {
+    final tt = Theme.of(context).textTheme;
     return Row(
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text(
+          label,
+          style: tt.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+        ),
         const SizedBox(width: 8),
-        Text(value),
+        Text(value, style: tt.bodyMedium),
       ],
     );
   }
@@ -291,7 +311,6 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
 
     if (confirm == true) {
       await PlantService().deletePlant(plant!.id);
-      // CORREÇÃO APLICADA AQUI
       if (context.mounted) {
         Navigator.pop(context);
       }

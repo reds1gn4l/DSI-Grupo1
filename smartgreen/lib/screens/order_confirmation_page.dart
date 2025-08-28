@@ -10,108 +10,105 @@ class OrderConfirmationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pedido Confirmado'),
         centerTitle: true,
-        backgroundColor: const Color(0xFF2E7D32),
-        foregroundColor: Colors.white, // seta e título brancos
+        backgroundColor: cs.primary,
+        foregroundColor: cs.onPrimary, // seta e título brancos via tema
       ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.check_circle_outline,
-              color: Colors.green,
+              color: cs.primary, // usa cor do tema
               size: 100,
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Seu pedido foi realizado com sucesso!',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              style: tt.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
 
             // Card com o código + botão de copiar
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
+            Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color.fromARGB(31, 255, 255, 255),
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
-                  ),
-                ],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'Código do Pedido:',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SelectableText(
-                          orderId,
-                          textAlign: TextAlign.left,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('Código do Pedido:', style: tt.bodyMedium),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SelectableText(
+                            orderId,
+                            textAlign: TextAlign.left,
+                            style: tt.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: cs.primary,
+                            ),
                           ),
                         ),
-                      ),
-                      IconButton(
-                        tooltip: 'Copiar código',
-                        icon: const Icon(Icons.copy),
-                        onPressed: () async {
-                          await Clipboard.setData(ClipboardData(text: orderId));
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                behavior: SnackBarBehavior.floating,
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                  vertical: 12,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                duration: const Duration(seconds: 2),
-                                content: const Text(
-                                  'Código copiado!',
-                                  textAlign: TextAlign.center, // centralizado ✅
-                                ),
-                              ),
+                        IconButton(
+                          tooltip: 'Copiar código',
+                          icon: const Icon(Icons.copy),
+                          onPressed: () async {
+                            await Clipboard.setData(
+                              ClipboardData(text: orderId),
                             );
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                ],
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  behavior: SnackBarBehavior.floating,
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 12,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                  content: const Text(
+                                    'Código copiado!',
+                                    textAlign:
+                                        TextAlign.center, // centralizado ✅
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
 
             const SizedBox(height: 32),
 
-            // Botão padrão
+            // Botão padrão (usa o tema)
             SizedBox(
               width: double.infinity,
               child: CustomButton(
                 label: 'Voltar à Página Inicial',
                 icon: Icons.home,
-                backgroundColor: Colors.green,
+                backgroundColor: cs.primary,
+                textColor: cs.onPrimary,
                 onPressed: () {
                   Navigator.popUntil(context, (route) => route.isFirst);
                 },

@@ -1,9 +1,11 @@
+// lib/screens/login_screen.dart
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../globals.dart';
 import '../homepage.dart';
 import 'forgot_password_page.dart';
 import 'user_registration_page.dart';
+import '../widgets/custom_button.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,7 +17,11 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
   final AuthService _authService = AuthService();
+
+  bool _loading = false;
+  bool _obscure = true;
 
   @override
   void dispose() {
@@ -25,6 +31,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _tryLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _loading = true);
     try {
       final userData = await _authService.login(
         _emailCtrl.text.trim(),
@@ -43,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
         Navigator.of(
           context,
-        ).pushReplacement(MaterialPageRoute(builder: (context) => HomePage()));
+        ).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('E-mail ou senha inválidos.')),
@@ -54,66 +63,156 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Erro ao tentar fazer login.')),
       );
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
+  String? _emailValidator(String? v) {
+    final s = (v ?? '').trim();
+    if (s.isEmpty) return 'Digite seu e-mail';
+    if (!s.contains('@') || !s.contains('.')) return 'Digite um e-mail válido';
+    return null;
+  }
+
+  String? _passwordValidator(String? v) {
+    if ((v ?? '').isEmpty) return 'Digite sua senha';
+    return null;
+  }
+
   @override
-  Widget build(BuildContext ctx) {
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(247, 246, 242, 1),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(child: Image.asset('assets/smartgreen.png', height: 150)),
-            const SizedBox(height: 40),
-            TextField(
-              controller: _emailCtrl,
-              decoration: const InputDecoration(
-                labelText: 'E-mail',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Senha',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
-            const SizedBox(height: 16),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const ForgotPasswordPage(),
+      // usa scaffoldBackgroundColor do tema (definido no main)
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Logo
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 24),
+                    child: Image.asset('assets/smartgreen.png', height: 120),
                   ),
-                );
-              },
-              child: const Text(
-                'Esqueceu a senha?',
-                style: TextStyle(color: Colors.blue),
+
+                  // Card do formulário
+                  Card(
+                    elevation: theme.cardTheme.elevation ?? 1,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              controller: _emailCtrl,
+                              keyboardType: TextInputType.emailAddress,
+                              textInputAction: TextInputAction.next,
+                              decoration: const InputDecoration(
+                                labelText: 'E-mail',
+                              ),
+                              validator: _emailValidator,
+                              enabled: !_loading,
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _passCtrl,
+                              obscureText: _obscure,
+                              textInputAction: TextInputAction.done,
+                              onFieldSubmitted: (_) => _tryLogin(),
+                              decoration: InputDecoration(
+                                labelText: 'Senha',
+                                suffixIcon: IconButton(
+                                  tooltip:
+                                      _obscure
+                                          ? 'Mostrar senha'
+                                          : 'Ocultar senha',
+                                  icon: Icon(
+                                    _obscure
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                  ),
+                                  onPressed:
+                                      _loading
+                                          ? null
+                                          : () => setState(
+                                            () => _obscure = !_obscure,
+                                          ),
+                                ),
+                              ),
+                              validator: _passwordValidator,
+                              enabled: !_loading,
+                            ),
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed:
+                                    _loading
+                                        ? null
+                                        : () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder:
+                                                  (_) =>
+                                                      const ForgotPasswordPage(),
+                                            ),
+                                          );
+                                        },
+                                child: const Text('Esqueceu a senha?'),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: double.infinity,
+                              child: CustomButton(
+                                label: _loading ? 'Entrando...' : 'Entrar',
+                                icon: Icons.login,
+                                onPressed: _loading ? null : _tryLogin,
+                                backgroundColor: cs.primary,
+                                textColor: cs.onPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Criar conta
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed:
+                          _loading
+                              ? null
+                              : () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder:
+                                        (_) => const UserRegistrationPage(),
+                                  ),
+                                );
+                              },
+                      child: const Text('Criar conta'),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            ElevatedButton(onPressed: _tryLogin, child: const Text('Entrar')),
-            const SizedBox(height: 16),
-            OutlinedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const UserRegistrationPage(),
-                  ),
-                );
-              },
-              child: const Text('Criar conta'),
-            ),
-          ],
+          ),
         ),
       ),
     );

@@ -26,13 +26,15 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: AppColors.green,
+      brightness: Brightness.light,
     ).copyWith(
       primary: AppColors.green,
+      secondary: AppColors.green,
+      tertiary: AppColors.blue, // <- azul padronizado (botões secundários)
       surface: AppColors.surface,
-      // background deprecado — usamos scaffoldBackgroundColor abaixo
     );
 
-    final base = ThemeData(
+    final theme = ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.background,
@@ -44,7 +46,6 @@ class MyApp extends StatelessWidget {
         centerTitle: true,
       ),
 
-      // >>> CardThemeData (em vez de CardTheme)
       cardTheme: CardThemeData(
         color: AppColors.surfaceAlt,
         elevation: 3,
@@ -65,6 +66,8 @@ class MyApp extends StatelessWidget {
         thickness: 1,
       ),
 
+      // Padrão verde para ElevatedButton (os azuis usamos passando
+      // backgroundColor: AppColors.blue onde necessário)
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.green,
@@ -76,9 +79,10 @@ class MyApp extends StatelessWidget {
         ),
       ),
 
+      // Campos de formulário padrão com borda discreta
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.white,
+        fillColor: AppColors.surface,
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 12,
@@ -102,7 +106,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'SmartGreen',
       debugShowCheckedModeBanner: false,
-      theme: base,
+      theme: theme,
       home: const LoginScreen(),
       routes: {'/catalog': (_) => const CatalogPage()},
     );

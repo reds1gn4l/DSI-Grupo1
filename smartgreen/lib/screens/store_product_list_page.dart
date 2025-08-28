@@ -1,3 +1,4 @@
+// lib/screens/store_product_list_page.dart
 import 'package:flutter/material.dart';
 import '../models/store_product.dart';
 import '../services/store_product_service.dart';
@@ -99,10 +100,20 @@ class _ProductListPageState extends State<ProductListPage> {
                     Expanded(
                       child: TextField(
                         controller: _searchCtrl,
+                        style: const TextStyle(height: 1.2),
                         decoration: const InputDecoration(
                           isDense: true,
                           hintText: 'Buscar produto...',
+                          // remove QUALQUER borda/outline (inclusive foco/erro)
                           border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          focusedErrorBorder: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
+                          // sem fundo próprio; o branco vem do Container
+                          filled: false,
                         ),
                         textInputAction: TextInputAction.search,
                       ),
@@ -113,7 +124,7 @@ class _ProductListPageState extends State<ProductListPage> {
                         icon: const Icon(Icons.clear, color: Colors.black54),
                         onPressed: () {
                           _searchCtrl.clear();
-                          setState(() {}); // atualiza o ícone
+                          setState(() {}); // atualiza ícone
                         },
                       ),
                   ],
@@ -285,20 +296,20 @@ class _ProductListPageState extends State<ProductListPage> {
                         ].join(' • '),
                       ),
                     ),
-                    // tap -> edição; long-press -> detalhes
+                    // AGORA: toque = detalhes | segurar = editar
                     onTap:
                         () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder:
-                                (_) => StoreProductFormPage(storeProduct: p),
+                            builder: (_) => StoreProductDetailPage(product: p),
                           ),
                         ),
                     onLongPress:
                         () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => StoreProductDetailPage(product: p),
+                            builder:
+                                (_) => StoreProductFormPage(storeProduct: p),
                           ),
                         ),
                   ),

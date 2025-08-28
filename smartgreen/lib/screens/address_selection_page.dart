@@ -56,7 +56,8 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
     return CustomButton(
       label: 'Adicionar Novo Endereço',
       icon: Icons.add,
-      backgroundColor: Colors.blue,
+      // Azul do tema
+      backgroundColor: Theme.of(context).colorScheme.tertiary,
       textColor: Colors.white,
       onPressed: () {
         Navigator.push(
@@ -156,9 +157,8 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
             children: [
               Expanded(
                 child: ListView.builder(
-                  // deixa espaço para o rodapé fixo
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
-                  itemCount: addresses.length + 1, // +1 para o botão no fim
+                  itemCount: addresses.length + 1,
                   itemBuilder: (context, index) {
                     if (index < addresses.length) {
                       final address = addresses[index];
@@ -246,7 +246,7 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                         ),
                       );
                     } else {
-                      // ÚLTIMO ITEM: botão "Adicionar Novo Endereço"
+                      // ÚLTIMO ITEM: botão "Adicionar Novo Endereço" (azul)
                       return Padding(
                         padding: const EdgeInsets.fromLTRB(0, 4, 0, 12),
                         child: SizedBox(

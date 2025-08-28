@@ -133,16 +133,38 @@ class HomePageState extends State<HomePage> {
                       const Icon(Icons.search, size: 22, color: Colors.black54),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: TextField(
-                          controller: _searchCtrl,
-                          decoration: InputDecoration(
-                            isDense: true,
-                            hintText: _currentHint(),
-                            border: InputBorder.none,
+                        // Theme local para zerar TODAS as bordas do TextField
+                        child: Theme(
+                          data: Theme.of(context).copyWith(
+                            inputDecorationTheme: const InputDecorationTheme(
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              disabledBorder: InputBorder.none,
+                              errorBorder: InputBorder.none,
+                              focusedErrorBorder: InputBorder.none,
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                              filled: false,
+                            ),
                           ),
-                          textInputAction: TextInputAction.search,
-                          onChanged: _dispatchSearch,
-                          onSubmitted: _dispatchSearch,
+                          child: TextField(
+                            controller: _searchCtrl,
+                            decoration: InputDecoration(
+                              hintText: _currentHint(),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              disabledBorder: InputBorder.none,
+                              errorBorder: InputBorder.none,
+                              focusedErrorBorder: InputBorder.none,
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                            textInputAction: TextInputAction.search,
+                            onChanged: _dispatchSearch,
+                            onSubmitted: _dispatchSearch,
+                          ),
                         ),
                       ),
                       if (_searchCtrl.text.isNotEmpty)

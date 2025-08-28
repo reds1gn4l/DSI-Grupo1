@@ -4,6 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../models/address.dart';
 import '../widgets/custom_button.dart';
 
@@ -31,7 +32,6 @@ class _MapPageState extends State<MapPage> {
   final referenceCtrl = TextEditingController();
 
   final mapController = MapController();
-  Color get _green => const Color(0xFF2E7D32);
 
   // --- UF helpers (aceita nome por extenso e sigla; devolve sempre SIGLA) ---
   static const Set<String> _ufs = {
@@ -120,7 +120,6 @@ class _MapPageState extends State<MapPage> {
     numberCtrl.text = widget.address.number;
     neighborhoodCtrl.text = widget.address.neighborhood;
     cityCtrl.text = widget.address.city;
-    // normaliza caso tenha vindo como nome por extenso
     stateCtrl.text = _toUF(
       widget.address.state,
       fallback: widget.address.state.toUpperCase(),
@@ -132,11 +131,18 @@ class _MapPageState extends State<MapPage> {
   }
 
   String _bestCityFromPlacemarks(List<Placemark> ps) {
-    // Evita confundir UF (em sigla ou por extenso) com cidade
+    // Evita confundir UF (sigla/nome) com cidade
     final ufSigla = _toUF(
       stateCtrl.text,
       fallback: stateCtrl.text.toUpperCase(),
     );
+    final ufNome =
+        _ufNameToCode.entries
+            .firstWhere(
+              (e) => e.value == ufSigla,
+              orElse: () => const MapEntry('', ''),
+            )
+            .key;
     for (final p in ps) {
       final candidates = <String?>[
         p.locality,
@@ -147,16 +153,7 @@ class _MapPageState extends State<MapPage> {
         final v = (c ?? '').trim();
         if (v.isEmpty) continue;
         final vUp = v.toUpperCase();
-        if (vUp != ufSigla &&
-            vUp !=
-                (_ufNameToCode.entries
-                    .firstWhere(
-                      (e) => e.value == ufSigla,
-                      orElse: () => const MapEntry('', ''),
-                    )
-                    .key)) {
-          return v;
-        }
+        if (vUp != ufSigla && vUp != ufNome) return v;
       }
     }
     return cityCtrl.text;
@@ -212,7 +209,6 @@ class _MapPageState extends State<MapPage> {
           numberCtrl.text = p.subThoroughfare ?? _extractNumber(p.name);
           neighborhoodCtrl.text = p.subLocality ?? neighborhoodCtrl.text;
           cityCtrl.text = _bestCityFromPlacemarks(placemarks);
-          // normaliza UF mesmo quando vem como nome por extenso
           final uf = _toUF(
             p.administrativeArea ?? '',
             fallback: stateCtrl.text.toUpperCase(),
@@ -227,27 +223,10 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
-  InputDecoration _dec(String label) => InputDecoration(
-    labelText: label,
-    filled: true,
-    fillColor: Colors.white,
-    isDense: true,
-    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Colors.black12),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Colors.black12),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(color: _green, width: 2),
-    ),
-  );
+  Widget _buildForm(BuildContext context) {
+    // Inputs herdam InputDecorationTheme do tema global
+    InputDecoration dec(String label) => InputDecoration(labelText: label);
 
-  Widget _buildForm() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
       child: Column(
@@ -258,7 +237,7 @@ class _MapPageState extends State<MapPage> {
                 flex: 2,
                 child: TextField(
                   controller: cepCtrl,
-                  decoration: _dec('CEP'),
+                  decoration: dec('CEP'),
                   keyboardType: TextInputType.number,
                 ),
               ),
@@ -266,12 +245,10 @@ class _MapPageState extends State<MapPage> {
               Expanded(
                 child: TextField(
                   controller: stateCtrl,
-                  decoration: _dec('UF'),
+                  decoration: dec('UF'),
                   textCapitalization: TextCapitalization.characters,
                   onChanged: (v) {
-                    // sempre que o usuário digitar/colar, tentamos normalizar para sigla
                     final norm = _toUF(v, fallback: v.toUpperCase());
-                    // evita loop de setState a cada tecla: só altera quando muda
                     if (norm != stateCtrl.text) {
                       final sel = stateCtrl.selection;
                       stateCtrl.value = TextEditingValue(
@@ -290,14 +267,14 @@ class _MapPageState extends State<MapPage> {
               Expanded(
                 child: TextField(
                   controller: cityCtrl,
-                  decoration: _dec('Cidade'),
+                  decoration: dec('Cidade'),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: TextField(
                   controller: neighborhoodCtrl,
-                  decoration: _dec('Bairro'),
+                  decoration: dec('Bairro'),
                 ),
               ),
             ],
@@ -309,14 +286,14 @@ class _MapPageState extends State<MapPage> {
                 flex: 2,
                 child: TextField(
                   controller: streetCtrl,
-                  decoration: _dec('Endereço'),
+                  decoration: dec('Endereço'),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: TextField(
                   controller: numberCtrl,
-                  decoration: _dec('Número'),
+                  decoration: dec('Número'),
                 ),
               ),
             ],
@@ -327,14 +304,14 @@ class _MapPageState extends State<MapPage> {
               Expanded(
                 child: TextField(
                   controller: complementCtrl,
-                  decoration: _dec('Complemento'),
+                  decoration: dec('Complemento'),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: TextField(
                   controller: referenceCtrl,
-                  decoration: _dec('Referência'),
+                  decoration: dec('Referência'),
                 ),
               ),
             ],
@@ -399,12 +376,14 @@ class _MapPageState extends State<MapPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Editar Localização'),
         centerTitle: true,
-        backgroundColor: _green,
-        foregroundColor: Colors.white,
+        backgroundColor: cs.primary,
+        foregroundColor: cs.onPrimary,
       ),
       body:
           _isLoading
@@ -413,8 +392,8 @@ class _MapPageState extends State<MapPage> {
               ? Center(child: Text(_errorMessage!))
               : Column(
                 children: [
-                  _buildForm(),
-                  const SizedBox(height: 12),
+                  _buildForm(context),
+                  const SizedBox(height: 12), // espaçamento padrão app
                   _buildMap(),
                   Padding(
                     padding: const EdgeInsets.symmetric(
@@ -426,8 +405,8 @@ class _MapPageState extends State<MapPage> {
                       child: CustomButton(
                         label: 'Usar este endereço',
                         icon: Icons.check,
-                        backgroundColor: _green,
-                        textColor: Colors.white,
+                        backgroundColor: cs.primary,
+                        textColor: cs.onPrimary,
                         onPressed: () {
                           final updated = Address(
                             id: widget.address.id,

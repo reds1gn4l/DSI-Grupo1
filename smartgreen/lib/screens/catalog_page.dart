@@ -1,16 +1,17 @@
 // lib/screens/catalog_page.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../services/product_service.dart';
 import '../services/cart_service.dart';
 import '../models/product.dart';
 import '../shared/searchable_tab.dart';
-import 'cart_page.dart'; // fica só como fallback, se não passarem o callback
+import 'cart_page.dart'; // fallback se não passarem o callback
 import 'product_detail_page.dart';
 
 class CatalogPage extends StatefulWidget {
   const CatalogPage({super.key, this.goToCart});
-  final VoidCallback? goToCart; // <--- callback para trocar a aba
+  final VoidCallback? goToCart; // callback para trocar a aba
 
   @override
   CatalogPageState createState() => CatalogPageState();
@@ -27,8 +28,6 @@ class CatalogPageState extends State<CatalogPage> with SearchableTab {
   void applySearch(String query) {
     setState(() => _searchQuery = query.trim().toLowerCase());
   }
-
-  Color get _green => const Color(0xFF2E7D32);
 
   // SnackBar que flutua acima da barra do carrinho
   SnackBar _cartSnack(String message, {VoidCallback? onUndo}) {
@@ -75,7 +74,10 @@ class CatalogPageState extends State<CatalogPage> with SearchableTab {
   }
 
   Future<void> _chooseQtyAndAdd(Product p) async {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     int qty = 1;
+
     await showModalBottomSheet(
       context: context,
       isScrollControlled: false,
@@ -93,9 +95,8 @@ class CatalogPageState extends State<CatalogPage> with SearchableTab {
                 children: [
                   Text(
                     p.cientificName,
-                    style: const TextStyle(
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
-                      fontSize: 16,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -113,8 +114,7 @@ class CatalogPageState extends State<CatalogPage> with SearchableTab {
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
                           '$qty',
-                          style: const TextStyle(
-                            fontSize: 20,
+                          style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -131,8 +131,8 @@ class CatalogPageState extends State<CatalogPage> with SearchableTab {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _green,
-                        foregroundColor: Colors.white,
+                        backgroundColor: cs.primary,
+                        foregroundColor: cs.onPrimary,
                         minimumSize: const Size.fromHeight(48),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -170,6 +170,9 @@ class CatalogPageState extends State<CatalogPage> with SearchableTab {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
     final screenWidth = MediaQuery.of(context).size.width;
     const crossAxisCount = 2;
     final itemWidth = (screenWidth - 30) / crossAxisCount;
@@ -220,7 +223,11 @@ class CatalogPageState extends State<CatalogPage> with SearchableTab {
                     itemBuilder: (context, index) {
                       final product = products[index];
                       return Card(
-                        elevation: 3,
+                        elevation: theme.cardTheme.elevation ?? 3,
+                        color:
+                            theme
+                                .cardTheme
+                                .color, // pega do theme (surfaceContainer nível)
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -266,7 +273,7 @@ class CatalogPageState extends State<CatalogPage> with SearchableTab {
                                 ),
                                 child: Text(
                                   product.cientificName,
-                                  style: const TextStyle(
+                                  style: theme.textTheme.bodyMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),
                                   maxLines: 1,
@@ -284,10 +291,11 @@ class CatalogPageState extends State<CatalogPage> with SearchableTab {
                                   children: [
                                     Text(
                                       'R\$ ${product.precoUnt.toStringAsFixed(2)}',
-                                      style: TextStyle(
-                                        color: Colors.green.shade800,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            color: cs.primary,
+                                            fontWeight: FontWeight.w700,
+                                          ),
                                     ),
                                     const Spacer(),
                                     SizedBox(
@@ -295,8 +303,8 @@ class CatalogPageState extends State<CatalogPage> with SearchableTab {
                                       width: 44,
                                       child: ElevatedButton(
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: _green,
-                                          foregroundColor: Colors.white,
+                                          backgroundColor: cs.primary,
+                                          foregroundColor: cs.onPrimary,
                                           padding: EdgeInsets.zero,
                                           shape: RoundedRectangleBorder(
                                             borderRadius: BorderRadius.circular(
@@ -323,7 +331,7 @@ class CatalogPageState extends State<CatalogPage> with SearchableTab {
                     },
                   ),
 
-                  // barra flutuante do carrinho (resumo, sem botão)
+                  // barra flutuante do carrinho (resumo)
                   Consumer<CartService>(
                     builder: (context, cart, _) {
                       if (cart.items.isEmpty) return const SizedBox.shrink();
@@ -340,8 +348,6 @@ class CatalogPageState extends State<CatalogPage> with SearchableTab {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12),
                           onTap: () {
-                            // Vai para a ABA Carrinho se o callback foi passado;
-                            // caso contrário, cai no fallback abrindo a CartPage.
                             if (widget.goToCart != null) {
                               widget.goToCart!();
                             } else {
@@ -362,9 +368,12 @@ class CatalogPageState extends State<CatalogPage> with SearchableTab {
                                 vertical: 12,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color:
+                                    theme.cardColor, // contrasta com o scaffold
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.black12),
+                                border: Border.all(
+                                  color: theme.dividerColor,
+                                ), // usa theme
                               ),
                               child: Row(
                                 children: [
@@ -373,9 +382,10 @@ class CatalogPageState extends State<CatalogPage> with SearchableTab {
                                   Expanded(
                                     child: Text(
                                       '$count item${count == 1 ? '' : 's'} • R\$ $total',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                     ),
                                   ),
                                   const Icon(Icons.chevron_right),

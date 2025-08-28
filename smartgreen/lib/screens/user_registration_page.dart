@@ -1,8 +1,10 @@
+// lib/screens/user_registration_page.dart
 import 'package:flutter/material.dart';
 import '../homepage.dart';
 import '../globals.dart';
 import '../models/user_model.dart';
 import '../services/firestore_service.dart';
+import '../widgets/custom_button.dart';
 
 class UserRegistrationPage extends StatefulWidget {
   const UserRegistrationPage({super.key});
@@ -66,105 +68,99 @@ class _UserRegistrationPageState extends State<UserRegistrationPage> {
       ).pushReplacement(MaterialPageRoute(builder: (context) => HomePage()));
     } catch (e) {
       if (!mounted) return;
-
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Erro ao cadastrar usuário: $e')));
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Cadastro')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              Center(child: Image.asset('assets/smartgreen.png', height: 150)),
-              const SizedBox(height: 40),
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nome completo',
-                  border: OutlineInputBorder(),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: [
+            Center(child: Image.asset('assets/smartgreen.png', height: 150)),
+            const SizedBox(height: 32),
+
+            // Nome
+            TextFormField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'Nome completo'),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Por favor, insira seu nome completo';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // E-mail
+            TextFormField(
+              controller: _emailController,
+              decoration: const InputDecoration(labelText: 'E-mail'),
+              keyboardType: TextInputType.emailAddress,
+              validator: (value) {
+                final v = value?.trim() ?? '';
+                if (v.isEmpty) return 'Por favor, insira seu e-mail';
+                if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v)) {
+                  return 'Por favor, insira um e-mail válido';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Senha
+            TextFormField(
+              controller: _passwordController,
+              decoration: const InputDecoration(labelText: 'Senha'),
+              obscureText: true,
+              validator: (value) {
+                final v = value ?? '';
+                if (v.isEmpty) return 'Por favor, insira sua senha';
+                if (v.length < 6) {
+                  return 'Senha deve ter pelo menos 6 caracteres';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Repetir senha
+            TextFormField(
+              controller: _repeatPasswordController,
+              decoration: const InputDecoration(labelText: 'Repetir senha'),
+              obscureText: true,
+              validator: (value) {
+                final v = value ?? '';
+                if (v.isEmpty) return 'Por favor, repita sua senha';
+                if (v != _passwordController.text) {
+                  return 'Senhas não coincidem';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 28),
+
+            // Botão de ação (padrão do app)
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : CustomButton(
+                  label: 'Cadastrar',
+                  icon: Icons.person_add,
+                  backgroundColor: cs.primary,
+                  textColor: cs.onPrimary,
+                  onPressed: _submitForm,
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira seu nome completo';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'E-mail',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira seu e-mail';
-                  }
-                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                    return 'Por favor, insira um e-mail válido';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _passwordController,
-                decoration: const InputDecoration(
-                  labelText: 'Senha',
-                  border: OutlineInputBorder(),
-                ),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira sua senha';
-                  }
-                  if (value.length < 6) {
-                    return 'Senha deve ter pelo menos 6 caracteres';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _repeatPasswordController,
-                decoration: const InputDecoration(
-                  labelText: 'Repetir senha',
-                  border: OutlineInputBorder(),
-                ),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, repita sua senha';
-                  }
-                  if (value != _passwordController.text) {
-                    return 'Senhas não coincidem';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 40),
-              _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                    onPressed: _submitForm,
-                    child: const Text('Cadastrar'),
-                  ),
-            ],
-          ),
+          ],
         ),
       ),
     );

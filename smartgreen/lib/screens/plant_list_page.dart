@@ -26,6 +26,8 @@ class PlantListPageState extends State<PlantListPage> with SearchableTab {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Stack(
       children: [
         StreamBuilder<List<Plant>>(
@@ -48,7 +50,8 @@ class PlantListPageState extends State<PlantListPage> with SearchableTab {
                       padding: const EdgeInsets.only(bottom: 96),
                       child: LeafGlyph(
                         size: leafSize,
-                        color: Colors.grey.shade400,
+                        // usa cor do tema com leve transparência
+                        color: cs.outlineVariant.withValues(alpha: 0.35),
                       ),
                     ),
                   );
@@ -72,29 +75,40 @@ class PlantListPageState extends State<PlantListPage> with SearchableTab {
             return ListView.builder(
               padding: const EdgeInsets.only(bottom: 110, top: 8),
               itemCount: ordered.length,
-              itemBuilder:
-                  (context, index) => PlantCardWidget(plant: ordered[index]),
+              itemBuilder: (context, index) {
+                return PlantCardWidget(plant: ordered[index]);
+              },
             );
           },
         ),
 
+        // FAB estendido usando o tema (primary/onPrimary)
         Positioned(
           left: 0,
           right: 0,
           bottom: 16,
-          child: Center(
-            child: FloatingActionButton.extended(
-              heroTag: 'fab_add_plant',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const PlantFormPage()),
-                );
-              },
-              icon: const Icon(Icons.add),
-              label: const Text('Cadastrar nova planta'),
-              backgroundColor: const Color(0xFFA5D6A7),
-              foregroundColor: Colors.black87,
+          child: SafeArea(
+            top: false,
+            left: false,
+            right: false,
+            child: Center(
+              child: FloatingActionButton.extended(
+                heroTag: 'fab_add_plant',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const PlantFormPage()),
+                  );
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Cadastrar nova planta'),
+                backgroundColor: cs.primary,
+                foregroundColor: cs.onPrimary,
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
             ),
           ),
         ),

@@ -1,3 +1,4 @@
+// lib/screens/store_product_detail_page.dart
 import 'package:flutter/material.dart';
 import '../models/store_product.dart';
 
@@ -5,7 +6,8 @@ class StoreProductDetailPage extends StatelessWidget {
   final StoreProduct product;
   const StoreProductDetailPage({super.key, required this.product});
 
-  Color get _green => const Color(0xFF2E7D32);
+  String _money(num v) =>
+      'R\$ ${v.toStringAsFixed(2)}'.replaceFirst(' ', '\u00A0'); // NBSP
 
   String _fmtDate(DateTime d) {
     String two(int n) => n.toString().padLeft(2, '0');
@@ -14,23 +16,18 @@ class StoreProductDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+
     final createdAt = product.createdAt;
     final hasCategory = (product.category ?? '').isNotEmpty;
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      // usa scaffoldBackgroundColor do tema
       appBar: AppBar(
-        backgroundColor: _green,
-        elevation: 0,
-        centerTitle: false,
-        // garante ícone e título em branco
-        foregroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.white),
-        titleTextStyle: const TextStyle(
-          color: Colors.white,
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-        ),
+        centerTitle: true,
+        backgroundColor: cs.primary,
+        foregroundColor: cs.onPrimary,
         title: Text(product.cientificName, overflow: TextOverflow.ellipsis),
       ),
       body: ListView(
@@ -48,13 +45,13 @@ class StoreProductDetailPage extends StatelessWidget {
                         fit: BoxFit.cover,
                         errorBuilder:
                             (_, __, ___) => Container(
-                              color: Colors.grey.shade200,
+                              color: cs.surfaceContainerHighest,
                               alignment: Alignment.center,
                               child: const Icon(Icons.inventory_2, size: 48),
                             ),
                       )
                       : Container(
-                        color: Colors.grey.shade200,
+                        color: cs.surfaceContainerHighest,
                         alignment: Alignment.center,
                         child: const Icon(Icons.inventory_2, size: 48),
                       ),
@@ -73,13 +70,10 @@ class StoreProductDetailPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Título + chips
+                  // Título + chips + preço
                   Text(
                     product.cientificName,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -91,21 +85,17 @@ class StoreProductDetailPage extends StatelessWidget {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
+                            color: cs.surfaceContainerHigh,
                             borderRadius: BorderRadius.circular(999),
                           ),
-                          child: Text(
-                            product.category!,
-                            style: const TextStyle(fontSize: 12),
-                          ),
+                          child: Text(product.category!, style: tt.labelSmall),
                         ),
                       const Spacer(),
                       Text(
-                        'R\$ ${product.precoUnt.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          color: Colors.green.shade800,
+                        _money(product.precoUnt),
+                        style: tt.titleMedium?.copyWith(
+                          color: cs.primary,
                           fontWeight: FontWeight.w700,
-                          fontSize: 16,
                         ),
                       ),
                     ],
@@ -113,10 +103,7 @@ class StoreProductDetailPage extends StatelessWidget {
 
                   if (product.stock != null) ...[
                     const SizedBox(height: 6),
-                    Text(
-                      'Estoque: ${product.stock}',
-                      style: const TextStyle(fontSize: 13),
-                    ),
+                    Text('Estoque: ${product.stock}', style: tt.bodySmall),
                   ],
 
                   const SizedBox(height: 16),
@@ -124,9 +111,9 @@ class StoreProductDetailPage extends StatelessWidget {
 
                   // Especificações
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Especificações',
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                    style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   _SpecRow(
@@ -143,36 +130,41 @@ class StoreProductDetailPage extends StatelessWidget {
                     _SpecRow(
                       label: 'Data de Plantio',
                       value:
-                          '${product.dataPlantio!.day.toString().padLeft(2, '0')}/${product.dataPlantio!.month.toString().padLeft(2, '0')}/${product.dataPlantio!.year}',
+                          '${product.dataPlantio!.day.toString().padLeft(2, '0')}/'
+                          '${product.dataPlantio!.month.toString().padLeft(2, '0')}/'
+                          '${product.dataPlantio!.year}',
                     ),
 
                   // Descrições
                   if (product.descricaoPlanta.trim().isNotEmpty) ...[
                     const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       'Descrição da Planta',
-                      style: TextStyle(fontWeight: FontWeight.w600),
+                      style: tt.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 6),
-                    Text(product.descricaoPlanta),
+                    Text(product.descricaoPlanta, style: tt.bodyMedium),
                   ],
                   if (product.descricaoProd.trim().isNotEmpty) ...[
                     const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       'Descrição do Produto',
-                      style: TextStyle(fontWeight: FontWeight.w600),
+                      style: tt.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 6),
-                    Text(product.descricaoProd),
+                    Text(product.descricaoProd, style: tt.bodyMedium),
                   ],
 
                   if (createdAt != null) ...[
                     const SizedBox(height: 20),
                     Text(
                       'Cadastrado em: ${_fmtDate(createdAt)}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.black.withValues(alpha: 0.6),
+                      style: tt.labelSmall?.copyWith(
+                        color: cs.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -193,18 +185,16 @@ class _SpecRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
     if (value == null || value!.trim().isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 160,
-            child: Text(label, style: const TextStyle(color: Colors.black87)),
-          ),
+          SizedBox(width: 160, child: Text(label, style: tt.bodyMedium)),
           const SizedBox(width: 8),
-          Expanded(child: Text(value!)),
+          Expanded(child: Text(value!, style: tt.bodyMedium)),
         ],
       ),
     );

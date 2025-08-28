@@ -1,6 +1,8 @@
+// lib/screens/supply_form_page.dart
 import 'package:flutter/material.dart';
 import '../models/supply.dart';
 import '../services/supply_service.dart';
+import '../widgets/custom_button.dart';
 
 class SupplyFormPage extends StatefulWidget {
   final Supply? supply;
@@ -19,86 +21,117 @@ class _SupplyFormPageState extends State<SupplyFormPage> {
 
   final _service = SupplyService();
 
+  bool get _isEdit => widget.supply != null;
+
   @override
   void initState() {
     super.initState();
-    if (widget.supply != null) {
+    if (_isEdit) {
       _nameController.text = widget.supply!.name;
       _quantityController.text = widget.supply!.quantity.toString();
       _validityController.text = widget.supply!.validity;
     }
   }
 
-  void _submit() async {
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _quantityController.dispose();
+    _validityController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final newSupply = Supply(
+    final s = Supply(
       id: widget.supply?.id ?? '',
-      name: _nameController.text,
-      quantity: int.tryParse(_quantityController.text) ?? 0,
-      validity: _validityController.text,
+      name: _nameController.text.trim(),
+      quantity: int.tryParse(_quantityController.text.trim()) ?? 0,
+      validity: _validityController.text.trim(),
     );
 
-    if (widget.supply == null) {
-      await _service.addSupply(newSupply);
+    if (_isEdit) {
+      await _service.updateSupply(s);
     } else {
-      await _service.updateSupply(newSupply);
+      await _service.addSupply(s);
     }
 
-    // CORREÇÃO DEFINITIVA AQUI (usar mounted do State)
-    if (mounted) {
-      Navigator.pop(context);
-    }
+    if (mounted) Navigator.pop(context);
+  }
+
+  String? _validateName(String? v) {
+    final s = (v ?? '').trim();
+    if (s.isEmpty) return 'Informe o nome';
+    if (s.length < 2) return 'Nome muito curto';
+    return null;
+  }
+
+  String? _validateQty(String? v) {
+    final n = int.tryParse((v ?? '').trim());
+    if (n == null) return 'Informe um número válido';
+    if (n <= 0) return 'Quantidade deve ser maior que 0';
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
-    final isEdit = widget.supply != null;
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(isEdit ? 'Edite as informações' : 'Cadastre um insumo'),
+        centerTitle: true,
+        backgroundColor: cs.primary,
+        foregroundColor: cs.onPrimary,
+        title: Text(_isEdit ? 'Edite as informações' : 'Cadastre um insumo'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Nome'),
-                validator:
-                    (value) =>
-                        value == null || value.isEmpty
-                            ? 'Informe o nome'
-                            : null,
-              ),
-              TextFormField(
-                controller: _quantityController,
-                decoration: const InputDecoration(labelText: 'Quantidade'),
-                keyboardType: TextInputType.number,
-                validator:
-                    (value) =>
-                        value == null || value.isEmpty
-                            ? 'Informe a quantidade'
-                            : null,
-              ),
-              TextFormField(
-                controller: _validityController,
-                decoration: const InputDecoration(labelText: 'Validade'),
-                validator:
-                    (value) =>
-                        value == null || value.isEmpty
-                            ? 'Informe a validade'
-                            : null,
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _submit,
-                child: Text(isEdit ? 'Salvar' : 'Finalizar Cadastro'),
-              ),
-            ],
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                // Nome
+                TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(labelText: 'Nome'),
+                  textInputAction: TextInputAction.next,
+                  validator: _validateName,
+                ),
+                const SizedBox(height: 12),
+
+                // Quantidade
+                TextFormField(
+                  controller: _quantityController,
+                  decoration: const InputDecoration(labelText: 'Quantidade'),
+                  keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.next,
+                  validator: _validateQty,
+                ),
+                const SizedBox(height: 12),
+
+                // Validade
+                TextFormField(
+                  controller: _validityController,
+                  decoration: const InputDecoration(labelText: 'Validade'),
+                  textInputAction: TextInputAction.done,
+                ),
+
+                const SizedBox(height: 24),
+
+                // Botão padronizado
+                CustomButton(
+                  label: _isEdit ? 'Salvar' : 'Finalizar Cadastro',
+                  icon: Icons.check_circle,
+                  backgroundColor: cs.primary,
+                  textColor: cs.onPrimary,
+                  onPressed: _submit,
+                ),
+              ],
+            ),
           ),
         ),
       ),

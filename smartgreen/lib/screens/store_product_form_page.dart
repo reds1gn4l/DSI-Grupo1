@@ -1,3 +1,4 @@
+// lib/screens/store_product_form_page.dart
 import 'package:flutter/material.dart';
 import '../models/store_product.dart';
 import '../services/store_product_service.dart';
@@ -27,8 +28,6 @@ class _ProductFormPageState extends State<StoreProductFormPage> {
   final _imgCtrl = TextEditingController();
 
   bool _saving = false;
-
-  Color get _green => const Color(0xFF2E7D32);
 
   @override
   void initState() {
@@ -88,6 +87,7 @@ class _ProductFormPageState extends State<StoreProductFormPage> {
         }
       }
     }
+
     final p = StoreProduct(
       id: widget.storeProduct?.id ?? '',
       cientificName: _nameCtrl.text.trim(),
@@ -129,34 +129,39 @@ class _ProductFormPageState extends State<StoreProductFormPage> {
     }
   }
 
-  InputDecoration _dec(String label) => InputDecoration(
-    labelText: label,
-    filled: true,
-    fillColor: Colors.white,
-    isDense: true,
-    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Colors.black12),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: Colors.black12),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(color: _green),
-    ),
-  );
+  InputDecoration _dec(String label) {
+    final cs = Theme.of(context).colorScheme;
+    return InputDecoration(
+      labelText: label,
+      filled: true,
+      fillColor: cs.surface, // usa surface do tema
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: cs.outlineVariant, width: 1),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: cs.outlineVariant, width: 1),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: cs.primary, width: 2),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final isEdit = widget.storeProduct != null;
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: _green,
+        backgroundColor: cs.primary,
+        foregroundColor: cs.onPrimary,
         centerTitle: true,
         title: Text(isEdit ? 'Editar produto' : 'Novo produto'),
       ),
@@ -226,6 +231,15 @@ class _ProductFormPageState extends State<StoreProductFormPage> {
                           keyboardType: const TextInputType.numberWithOptions(
                             decimal: true,
                           ),
+                          validator: (v) {
+                            final val = double.tryParse(
+                              (v ?? '').replaceAll(',', '.'),
+                            );
+                            if (val == null || val < 0) {
+                              return 'Informe um preço válido';
+                            }
+                            return null;
+                          },
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -234,6 +248,14 @@ class _ProductFormPageState extends State<StoreProductFormPage> {
                           controller: _stockCtrl,
                           decoration: _dec('Estoque'),
                           keyboardType: TextInputType.number,
+                          validator: (v) {
+                            if ((v ?? '').trim().isEmpty) {
+                              return null; // opcional
+                            }
+                            final n = int.tryParse(v!.trim());
+                            if (n == null || n < 0) return 'Estoque inválido';
+                            return null;
+                          },
                         ),
                       ),
                     ],
@@ -269,8 +291,8 @@ class _ProductFormPageState extends State<StoreProductFormPage> {
                             ? 'Salvando...'
                             : (isEdit ? 'Salvar alterações' : 'Salvar'),
                     icon: Icons.save,
-                    backgroundColor: _green,
-                    textColor: Colors.white,
+                    backgroundColor: cs.primary,
+                    textColor: cs.onPrimary,
                     onPressed: _saving ? null : _save,
                   ),
                 ],

@@ -25,8 +25,6 @@ class _PaymentPageState extends State<PaymentPage> {
   String _paymentMethod = 'PIX';
   late Address _selectedAddress;
 
-  Color get _green => const Color(0xFF2E7D32);
-
   @override
   void initState() {
     super.initState();
@@ -91,8 +89,6 @@ class _PaymentPageState extends State<PaymentPage> {
 
   Widget _buildPaymentOption(String method, String label, String iconPath) {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 2,
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: ListTile(
         leading: Image.asset(iconPath, width: 48, height: 48),
@@ -108,6 +104,8 @@ class _PaymentPageState extends State<PaymentPage> {
   }
 
   Widget _addressCard(Address a) {
+    final tt = Theme.of(context).textTheme;
+
     final title =
         StringBuffer()
           ..write(a.street)
@@ -122,12 +120,9 @@ class _PaymentPageState extends State<PaymentPage> {
     final hasRef = a.reference.trim().isNotEmpty;
 
     return InkWell(
-      onTap: _chooseAddress, // trocar endereço
+      onTap: _chooseAddress, // tocar para escolher outro endereço
       borderRadius: BorderRadius.circular(12),
       child: Card(
-        elevation: 2,
-        color: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.symmetric(vertical: 8),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
@@ -136,29 +131,20 @@ class _PaymentPageState extends State<PaymentPage> {
             children: [
               Text(
                 title.toString(),
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
-                ),
+                style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 4),
-              Text(line2.toString(), style: const TextStyle(fontSize: 13)),
-              Text(line3, style: const TextStyle(fontSize: 13)),
+              Text(line2.toString(), style: tt.bodySmall),
+              Text(line3, style: tt.bodySmall),
               if (hasCompl || hasRef) const SizedBox(height: 4),
               if (hasCompl)
-                Text(
-                  'Complemento: ${a.complement}',
-                  style: const TextStyle(fontSize: 13),
-                ),
+                Text('Complemento: ${a.complement}', style: tt.bodySmall),
               if (hasRef)
-                Text(
-                  'Referência: ${a.reference}',
-                  style: const TextStyle(fontSize: 13),
-                ),
+                Text('Referência: ${a.reference}', style: tt.bodySmall),
               const SizedBox(height: 6),
-              const Text(
+              Text(
                 'Toque para escolher outro endereço',
-                style: TextStyle(fontSize: 12, color: Colors.black54),
+                style: tt.bodySmall?.copyWith(color: Colors.black54),
               ),
             ],
           ),
@@ -169,15 +155,15 @@ class _PaymentPageState extends State<PaymentPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final cart = Provider.of<CartService>(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F7),
       appBar: AppBar(
         title: const Text('Pagamento'),
         centerTitle: true,
-        backgroundColor: _green,
-        foregroundColor: Colors.white, // título e seta brancos
+        backgroundColor: cs.primary,
+        foregroundColor: cs.onPrimary,
       ),
       body: Column(
         children: [
@@ -185,8 +171,8 @@ class _PaymentPageState extends State<PaymentPage> {
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
-                // <-- estica os filhos (Cards) para largura total
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment:
+                    CrossAxisAlignment.stretch, // ocupa toda a largura
                 children: [
                   const Text(
                     'Endereço de Entrega:',
@@ -233,7 +219,8 @@ class _PaymentPageState extends State<PaymentPage> {
                   CustomButton(
                     label: 'Finalizar Pedido',
                     icon: Icons.check_circle,
-                    backgroundColor: _green,
+                    backgroundColor: cs.primary,
+                    textColor: cs.onPrimary,
                     onPressed: _finalizarPedido,
                   ),
                 ],
