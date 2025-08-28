@@ -17,11 +17,12 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
   final AuthService _authService = AuthService();
 
-  bool _loading = false;
   bool _obscure = true;
+
+  Color get _green => const Color(0xFF2E7D32);
+  Color get _blue => const Color(0xFF1E88E5);
 
   @override
   void dispose() {
@@ -31,9 +32,6 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _tryLogin() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _loading = true);
     try {
       final userData = await _authService.login(
         _emailCtrl.text.trim(),
@@ -58,159 +56,119 @@ class _LoginScreenState extends State<LoginScreen> {
           const SnackBar(content: Text('E-mail ou senha inválidos.')),
         );
       }
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Erro ao tentar fazer login.')),
       );
-    } finally {
-      if (mounted) setState(() => _loading = false);
     }
   }
 
-  String? _emailValidator(String? v) {
-    final s = (v ?? '').trim();
-    if (s.isEmpty) return 'Digite seu e-mail';
-    if (!s.contains('@') || !s.contains('.')) return 'Digite um e-mail válido';
-    return null;
-  }
-
-  String? _passwordValidator(String? v) {
-    if ((v ?? '').isEmpty) return 'Digite sua senha';
-    return null;
-  }
-
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-
+  Widget build(BuildContext ctx) {
     return Scaffold(
-      // usa scaffoldBackgroundColor do tema (definido no main)
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Logo
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 24),
-                    child: Image.asset('assets/smartgreen.png', height: 120),
-                  ),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Logo
+                Center(
+                  child: Image.asset('assets/smartgreen.png', height: 140),
+                ),
+                const SizedBox(height: 24),
 
-                  // Card do formulário
-                  Card(
-                    elevation: theme.cardTheme.elevation ?? 1,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                // Card de login
+                Material(
+                  elevation: 3,
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE9F2E5), // surfaceAlt do app
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          children: [
-                            TextFormField(
-                              controller: _emailCtrl,
-                              keyboardType: TextInputType.emailAddress,
-                              textInputAction: TextInputAction.next,
-                              decoration: const InputDecoration(
-                                labelText: 'E-mail',
-                              ),
-                              validator: _emailValidator,
-                              enabled: !_loading,
-                            ),
-                            const SizedBox(height: 12),
-                            TextFormField(
-                              controller: _passCtrl,
-                              obscureText: _obscure,
-                              textInputAction: TextInputAction.done,
-                              onFieldSubmitted: (_) => _tryLogin(),
-                              decoration: InputDecoration(
-                                labelText: 'Senha',
-                                suffixIcon: IconButton(
-                                  tooltip:
-                                      _obscure
-                                          ? 'Mostrar senha'
-                                          : 'Ocultar senha',
-                                  icon: Icon(
-                                    _obscure
-                                        ? Icons.visibility_off
-                                        : Icons.visibility,
-                                  ),
-                                  onPressed:
-                                      _loading
-                                          ? null
-                                          : () => setState(
-                                            () => _obscure = !_obscure,
-                                          ),
-                                ),
-                              ),
-                              validator: _passwordValidator,
-                              enabled: !_loading,
-                            ),
-                            const SizedBox(height: 8),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: TextButton(
-                                onPressed:
-                                    _loading
-                                        ? null
-                                        : () {
-                                          Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                              builder:
-                                                  (_) =>
-                                                      const ForgotPasswordPage(),
-                                            ),
-                                          );
-                                        },
-                                child: const Text('Esqueceu a senha?'),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            SizedBox(
-                              width: double.infinity,
-                              child: CustomButton(
-                                label: _loading ? 'Entrando...' : 'Entrar',
-                                icon: Icons.login,
-                                onPressed: _loading ? null : _tryLogin,
-                                backgroundColor: cs.primary,
-                                textColor: cs.onPrimary,
-                              ),
-                            ),
-                          ],
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // E-mail
+                        TextField(
+                          controller: _emailCtrl,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: const InputDecoration(
+                            labelText: 'E-mail',
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 12),
+
+                        // Senha
+                        TextField(
+                          controller: _passCtrl,
+                          obscureText: _obscure,
+                          decoration: InputDecoration(
+                            labelText: 'Senha',
+                            suffixIcon: IconButton(
+                              tooltip: _obscure ? 'Mostrar' : 'Ocultar',
+                              icon: Icon(
+                                _obscure
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                              ),
+                              onPressed:
+                                  () => setState(() => _obscure = !_obscure),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Esqueceu a senha
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const ForgotPasswordPage(),
+                                ),
+                              );
+                            },
+                            child: const Text('Esqueceu a senha?'),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+
+                        // Entrar (verde)
+                        CustomButton(
+                          label: 'Entrar',
+                          icon: Icons.login,
+                          backgroundColor: _green,
+                          textColor: Colors.white,
+                          onPressed: _tryLogin,
+                        ),
+                        const SizedBox(height: 8),
+
+                        // Criar conta (AZUL) — agora DENTRO do card
+                        CustomButton(
+                          label: 'Criar conta',
+                          icon: Icons.person_add_alt_1,
+                          backgroundColor: _blue,
+                          textColor: Colors.white,
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const UserRegistrationPage(),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     ),
                   ),
-
-                  const SizedBox(height: 16),
-
-                  // Criar conta
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed:
-                          _loading
-                              ? null
-                              : () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder:
-                                        (_) => const UserRegistrationPage(),
-                                  ),
-                                );
-                              },
-                      child: const Text('Criar conta'),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
