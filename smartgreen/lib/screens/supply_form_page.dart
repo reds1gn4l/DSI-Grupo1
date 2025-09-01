@@ -1,5 +1,5 @@
-// lib/screens/supply_form_page.dart
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/supply.dart';
 import '../services/supply_service.dart';
 import '../widgets/custom_button.dart';
@@ -21,6 +21,8 @@ class _SupplyFormPageState extends State<SupplyFormPage> {
 
   final _service = SupplyService();
 
+  late DateTime _createdAt;
+
   bool get _isEdit => widget.supply != null;
 
   @override
@@ -30,6 +32,9 @@ class _SupplyFormPageState extends State<SupplyFormPage> {
       _nameController.text = widget.supply!.name;
       _quantityController.text = widget.supply!.quantity.toString();
       _validityController.text = widget.supply!.validity;
+      _createdAt = widget.supply!.createdAt;
+    } else {
+      _createdAt = DateTime.now();
     }
   }
 
@@ -41,28 +46,18 @@ class _SupplyFormPageState extends State<SupplyFormPage> {
     super.dispose();
   }
 
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    final s = Supply(
-      id: widget.supply?.id ?? '',
-      name: _nameController.text.trim(),
-      quantity: int.tryParse(_quantityController.text.trim()) ?? 0,
-      validity: _validityController.text.trim(),
-    );
-
-    if (_isEdit) {
-      await _service.updateSupply(s);
-    } else {
-      await _service.addSupply(s);
+  DateTime? _tryParseDdMmYyyy(String input) {
+    try {
+     
+      return DateFormat('dd/MM/yyyy').parseStrict(input);
+    } catch (_) {
+      return null;
     }
-
-    if (mounted) Navigator.pop(context);
   }
 
   String? _validateName(String? v) {
     final s = (v ?? '').trim();
-    if (s.isEmpty) return 'Informe o nome';
+    if (s.isEmpty) return 'Informe o nome do insumo';
     if (s.length < 2) return 'Nome muito curto';
     return null;
   }
@@ -72,6 +67,44 @@ class _SupplyFormPageState extends State<SupplyFormPage> {
     if (n == null) return 'Informe um número válido';
     if (n <= 0) return 'Quantidade deve ser maior que 0';
     return null;
+  }
+
+  String? _validateValidity(String? v) {
+    final s = (v ?? '').trim();
+    if (s.isEmpty) return 'Informe a data de validade (dd/MM/yyyy)';
+
+    final parsed = _tryParseDdMmYyyy(s);
+    if (parsed == null) return 'Data inválida. Use dd/MM/yyyy';
+
+    
+    final created = DateTime(_createdAt.year, _createdAt.month, _createdAt.day);
+    final validity = DateTime(parsed.year, parsed.month, parsed.day);
+
+    if (validity.isBefore(created)) {
+      return 'Validade não pode ser anterior à data de criação';
+    }
+    return null;
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final s = Supply(
+      id: widget.supply?.id ?? '',
+      name: _nameController.text.trim(),
+      quantity: int.tryParse(_quantityController.text.trim()) ?? 0,
+      validity: _validityController.text.trim(), 
+      createdAt: _createdAt, 
+      imageUrl: widget.supply?.imageUrl, 
+    );
+
+    if (_isEdit) {
+      await _service.updateSupply(s);
+    } else {
+      await _service.addSupply(s);
+    }
+
+    if (mounted) Navigator.pop(context); 
   }
 
   @override
@@ -94,7 +127,7 @@ class _SupplyFormPageState extends State<SupplyFormPage> {
             key: _formKey,
             child: Column(
               children: [
-                // Nome
+                
                 TextFormField(
                   controller: _nameController,
                   decoration: const InputDecoration(labelText: 'Nome'),
@@ -103,7 +136,7 @@ class _SupplyFormPageState extends State<SupplyFormPage> {
                 ),
                 const SizedBox(height: 12),
 
-                // Quantidade
+                
                 TextFormField(
                   controller: _quantityController,
                   decoration: const InputDecoration(labelText: 'Quantidade'),
@@ -113,16 +146,21 @@ class _SupplyFormPageState extends State<SupplyFormPage> {
                 ),
                 const SizedBox(height: 12),
 
-                // Validade
+                
                 TextFormField(
                   controller: _validityController,
-                  decoration: const InputDecoration(labelText: 'Validade'),
+                  decoration: const InputDecoration(
+                    labelText: 'Validade (dd/MM/yyyy)',
+                    hintText: 'Ex.: 25/12/2025',
+                  ),
+                  keyboardType: TextInputType.datetime,
                   textInputAction: TextInputAction.done,
+                  validator: _validateValidity,
                 ),
 
                 const SizedBox(height: 24),
 
-                // Botão padronizado
+                
                 CustomButton(
                   label: _isEdit ? 'Salvar' : 'Finalizar Cadastro',
                   icon: Icons.check_circle,

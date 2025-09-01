@@ -1,4 +1,3 @@
-// lib/screens/supply_list_page.dart
 import 'package:flutter/material.dart';
 import '../models/supply.dart';
 import '../services/supply_service.dart';
@@ -43,12 +42,11 @@ class SupplyListPageState extends State<SupplyListPage> with SearchableTab {
               }
 
               final all = snapshot.data ?? [];
-              final filtered =
-                  all
-                      .where((s) => s.name.toLowerCase().contains(_searchQuery))
-                      .toList();
+              final filtered = all
+                  .where((s) => s.name.toLowerCase().contains(_searchQuery))
+                  .toList();
 
-              // Vazio: estado com botão centralizado
+             
               if (filtered.isEmpty) {
                 return Center(
                   child: ConstrainedBox(
@@ -67,7 +65,7 @@ class SupplyListPageState extends State<SupplyListPage> with SearchableTab {
                           const Text('Nenhum insumo encontrado.'),
                           const SizedBox(height: 16),
                           CustomButton(
-                            label: 'Cadastrar novo item',
+                            label: 'Cadastrar novo insumo',
                             icon: Icons.add,
                             backgroundColor: cs.primary,
                             textColor: cs.onPrimary,
@@ -87,7 +85,7 @@ class SupplyListPageState extends State<SupplyListPage> with SearchableTab {
                 );
               }
 
-              // Lista com cartões + espaço para o botão inferior
+              
               return ListView.builder(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
                 itemCount: filtered.length,
@@ -96,36 +94,32 @@ class SupplyListPageState extends State<SupplyListPage> with SearchableTab {
 
                   return Dismissible(
                     key: ValueKey(supply.id),
-                    direction:
-                        DismissDirection.endToStart, // direita -> esquerda
+                    direction: DismissDirection.endToStart, 
                     confirmDismiss: (_) async {
-                      final ok =
-                          await showDialog<bool>(
+                      final ok = await showDialog<bool>(
                             context: context,
-                            builder:
-                                (_) => AlertDialog(
-                                  title: const Text('Excluir insumo'),
-                                  content: const Text(
-                                    'Deseja realmente excluir este insumo?',
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed:
-                                          () =>
-                                              Navigator.of(context).pop(false),
-                                      child: const Text('Cancelar'),
-                                    ),
-                                    TextButton(
-                                      onPressed:
-                                          () => Navigator.of(context).pop(true),
-                                      child: const Text('Excluir'),
-                                    ),
-                                  ],
+                            builder: (_) => AlertDialog(
+                              title: const Text('Excluir insumo'),
+                              content: const Text(
+                                'Deseja realmente excluir este insumo?',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(false),
+                                  child: const Text('Cancelar'),
                                 ),
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(true),
+                                  child: const Text('Excluir'),
+                                ),
+                              ],
+                            ),
                           ) ??
                           false;
                       if (ok) await _service.deleteSupply(supply.id);
-                      return false; // a stream atualiza a lista
+                      return false; 
                     },
                     background: Container(
                       alignment: Alignment.centerRight,
@@ -139,35 +133,34 @@ class SupplyListPageState extends State<SupplyListPage> with SearchableTab {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        leading: const Icon(Icons.local_florist),
-                        title: Text(
-                          supply.name,
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        subtitle: Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            'Quantidade: ${supply.quantity}\nValidade: ${supply.validity}',
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => SupplyFormPage(supply: supply),
+                            ),
+                          );
+                        },
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
                           ),
-                        ),
-                        trailing: IconButton(
-                          tooltip: 'Editar',
-                          icon: Icon(Icons.edit, color: cs.primary),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => SupplyFormPage(supply: supply),
-                              ),
-                            );
-                          },
+                          leading: _buildLeadingImage(supply),
+                          title: Text(
+                            supply.name,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              'Quantidade: ${supply.quantity}\nValidade: ${supply.validity}',
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -178,13 +171,12 @@ class SupplyListPageState extends State<SupplyListPage> with SearchableTab {
           ),
         ),
 
-        // Rodapé fixo com botão no padrão do app
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           child: SafeArea(
             top: false,
             child: CustomButton(
-              label: 'Cadastrar novo item',
+              label: 'Cadastrar novo insumo',
               icon: Icons.add,
               backgroundColor: cs.primary,
               textColor: cs.onPrimary,
@@ -198,6 +190,36 @@ class SupplyListPageState extends State<SupplyListPage> with SearchableTab {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildLeadingImage(Supply supply) {
+    final radius = BorderRadius.circular(8);
+    if (supply.imageUrl != null && supply.imageUrl!.trim().isNotEmpty) {
+      return ClipRRect(
+        borderRadius: radius,
+        child: Image.network(
+          supply.imageUrl!,
+          width: 48,
+          height: 48,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => const _FallbackLeafIcon(),
+        ),
+      );
+    }
+    return const _FallbackLeafIcon();
+  }
+}
+
+class _FallbackLeafIcon extends StatelessWidget {
+  const _FallbackLeafIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Icon(
+      Icons.local_florist,
+      size: 40,
+      color: Colors.black38,
     );
   }
 }
