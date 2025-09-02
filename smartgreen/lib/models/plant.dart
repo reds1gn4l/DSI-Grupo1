@@ -10,11 +10,11 @@ class Plant {
   final DateTime? dataPlantio;
   final String? exposicaoSolar;
   final String status;
-
-  // Novos campos para detalhamento
   final double? mediaTemperatura;
   final double? mediaUmidade;
   final double? horasLuz;
+  final String? imageURL; // Suporta chaves 'imageURL' e 'imageUrl'
+  final String? userId; // Já existente e mantido
 
   Plant({
     required this.id,
@@ -29,22 +29,26 @@ class Plant {
     this.mediaTemperatura,
     this.mediaUmidade,
     this.horasLuz,
+    this.imageURL, // Adicionado
+    this.userId, // Mantido
   });
 
-  factory Plant.fromMap(String id, Map<String, dynamic> map) {
+  factory Plant.fromMap(String id, Map<String, dynamic> data) {
     return Plant(
       id: id,
-      name: map['name'] ?? '',
-      temperaturaMin: map['temperaturaMin'],
-      temperaturaMax: map['temperaturaMax'],
-      umidadeMin: map['umidadeMin'],
-      umidadeMax: map['umidadeMax'],
-      dataPlantio: (map['dataPlantio'] as Timestamp?)?.toDate(),
-      exposicaoSolar: map['exposicaoSolar'],
-      status: map['status'] ?? 'cinza',
-      mediaTemperatura: (map['mediaTemperatura'] as num?)?.toDouble(),
-      mediaUmidade: (map['mediaUmidade'] as num?)?.toDouble(),
-      horasLuz: (map['horasLuz'] as num?)?.toDouble(),
+      name: data['name'] ?? '',
+      temperaturaMin: data['temperaturaMin'],
+      temperaturaMax: data['temperaturaMax'],
+      umidadeMin: data['umidadeMin'],
+      umidadeMax: data['umidadeMax'],
+      dataPlantio: (data['dataPlantio'] as Timestamp?)?.toDate(),
+      exposicaoSolar: data['exposicaoSolar'],
+      status: data['status'] ?? 'verde',
+      mediaTemperatura: (data['mediaTemperatura'] as num?)?.toDouble(),
+      mediaUmidade: (data['mediaUmidade'] as num?)?.toDouble(),
+      horasLuz: (data['horasLuz'] as num?)?.toDouble(),
+      imageURL: data['imageURL'] ?? data['imageUrl'],
+      userId: data['userId'], // Mantido
     );
   }
 
@@ -55,12 +59,16 @@ class Plant {
       'temperaturaMax': temperaturaMax,
       'umidadeMin': umidadeMin,
       'umidadeMax': umidadeMax,
-      'dataPlantio': dataPlantio,
+      'dataPlantio':
+          dataPlantio != null ? Timestamp.fromDate(dataPlantio!) : null,
       'exposicaoSolar': exposicaoSolar,
       'status': status,
       'mediaTemperatura': mediaTemperatura,
       'mediaUmidade': mediaUmidade,
       'horasLuz': horasLuz,
+      // Persistimos com a chave 'imageUrl' (compatível com dados existentes)
+      'imageUrl': imageURL,
+      'userId': userId, // Mantido
     };
   }
 }
