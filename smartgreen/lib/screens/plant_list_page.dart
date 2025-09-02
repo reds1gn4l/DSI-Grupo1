@@ -1,11 +1,10 @@
-// lib/screens/plant_list_page.dart
 import 'package:flutter/material.dart';
 import '../models/plant.dart';
 import '../services/plant_service.dart';
 import '../widgets/plant_card_widget.dart';
 import '../widgets/leaf_glyph.dart';
 import 'plant_form_page.dart';
-import '../shared/searchable_tab.dart';
+import 'plant_detail_page.dart';
 
 class PlantListPage extends StatefulWidget {
   const PlantListPage({super.key});
@@ -14,105 +13,127 @@ class PlantListPage extends StatefulWidget {
   PlantListPageState createState() => PlantListPageState();
 }
 
-class PlantListPageState extends State<PlantListPage> with SearchableTab {
-  final PlantService _service = PlantService();
-  String _query = '';
+class PlantListPageState extends State<PlantListPage> {
+  final _service = PlantService();
+  String _search = '';
 
-  @override
-  String get searchHint => 'Pesquisar planta...';
+  String get searchHint => 'Buscar Planta';
+  void applySearch(String q) =>
+      setState(() => _search = q.trim().toLowerCase());
 
-  @override
-  void applySearch(String query) => setState(() => _query = query.trim());
+  Future<bool> _confirmDelete(BuildContext context, String name) async {
+    final cs = Theme.of(context).colorScheme;
+    return await showDialog<bool>(
+          context: context,
+          builder:
+              (_) => AlertDialog(
+                title: const Text('Remover planta'),
+                content: Text('Tem certeza que deseja remover "$name"?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('Cancelar'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: Text('Remover', style: TextStyle(color: cs.error)),
+                  ),
+                ],
+              ),
+        ) ??
+        false;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    return Scaffold(
+      body: FutureBuilder<List<Plant>>(
+        future: _service.getAllPlants(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-    return Stack(
-      children: [
-        StreamBuilder<List<Plant>>(
-          stream: _service.getPlants(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return const Center(child: Text('Erro ao carregar plantas'));
-            }
+          final plants = snapshot.data!;
+          final filtered =
+              plants
+                  .where((p) => p.name.toLowerCase().contains(_search))
+                  .toList()
+                ..sort((a, b) => a.name.compareTo(b.name));
 
-            final plants = snapshot.data ?? [];
-            if (plants.isEmpty) {
-              return LayoutBuilder(
-                builder: (context, constraints) {
-                  final leafSize = constraints.maxHeight * 0.5;
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 96),
-                      child: LeafGlyph(
-                        size: leafSize,
-                        // usa cor do tema com leve transparência
-                        color: cs.outlineVariant.withValues(alpha: 0.35),
-                      ),
-                    ),
-                  );
-                },
-              );
-            }
-
-            final q = _query.toLowerCase();
-            final matches = <Plant>[];
-            final nonMatches = <Plant>[];
-            for (final p in plants) {
-              final name = p.name.toLowerCase();
-              if (q.isEmpty || name.contains(q)) {
-                matches.add(p);
-              } else {
-                nonMatches.add(p);
-              }
-            }
-            final ordered = [...matches, ...nonMatches];
-
-            return ListView.builder(
-              padding: const EdgeInsets.only(bottom: 110, top: 8),
-              itemCount: ordered.length,
-              itemBuilder: (context, index) {
-                return PlantCardWidget(plant: ordered[index]);
-              },
+          if (filtered.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  LeafGlyph.empty(), // corrigido: sem const
+                  const SizedBox(height: 8),
+                  const Text('Nenhuma planta cadastrada'),
+                ],
+              ),
             );
-          },
-        ),
+          }
 
-        // FAB estendido usando o tema (primary/onPrimary)
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 16,
-          child: SafeArea(
-            top: false,
-            left: false,
-            right: false,
-            child: Center(
-              child: FloatingActionButton.extended(
-                heroTag: 'fab_add_plant',
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const PlantFormPage()),
-                  );
-                },
-                icon: const Icon(Icons.add),
-                label: const Text('Cadastrar nova planta'),
-                backgroundColor: cs.primary,
-                foregroundColor: cs.onPrimary,
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+          return ListView.builder(
+            padding: const EdgeInsets.only(bottom: 100),
+            itemCount: filtered.length,
+            itemBuilder:
+                (_, index) => PlantCardWidget(
+                  plant: filtered[index],
+                  onDelete: () async {
+                    final confirm = await _confirmDelete(
+                      context,
+                      filtered[index].name,
+                    );
+                    if (confirm) {
+                      await _service.deletePlant(filtered[index].id);
+                      setState(() {});
+                    }
+                  },
+                  onEdit: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder:
+                            (_) =>
+                                PlantFormPage(existingPlant: filtered[index]),
+                      ),
+                    );
+                    setState(() {});
+                  },
+                  onOpen: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder:
+                            (_) => PlantDetailPage(plantId: filtered[index].id),
+                      ),
+                    );
+                  },
                 ),
+          );
+        },
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        child: SizedBox(
+          height: 48,
+          child: ElevatedButton.icon(
+            onPressed: () async {
+              await Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const PlantFormPage()));
+              setState(() {});
+            },
+            icon: const Icon(Icons.add),
+            label: const Text('Cadastrar nova planta'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green.shade700,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 }

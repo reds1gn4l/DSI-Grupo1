@@ -1,10 +1,10 @@
-// lib/screens/plant_detail_page.dart
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../models/plant.dart';
-import 'plant_form_page.dart';
 import '../services/plant_service.dart';
+import '../widgets/custom_button.dart';
+import 'plant_form_page.dart';
 
 class PlantDetailPage extends StatefulWidget {
   final String plantId;
@@ -16,304 +16,196 @@ class PlantDetailPage extends StatefulWidget {
 }
 
 class _PlantDetailPageState extends State<PlantDetailPage> {
-  Plant? plant;
+  final PlantService _service = PlantService();
+  Plant? _plant;
 
   @override
   void initState() {
     super.initState();
-    fetchPlant();
+    _loadPlant();
   }
 
-  Future<void> fetchPlant() async {
-    final doc =
-        await FirebaseFirestore.instance
-            .collection('plants')
-            .doc(widget.plantId)
-            .get();
-
-    if (doc.exists) {
-      setState(() {
-        plant = Plant.fromMap(doc.id, doc.data() as Map<String, dynamic>);
-      });
+  Future<void> _loadPlant() async {
+    try {
+      final plant = await _service.fetchPlantById(widget.plantId);
+      if (!mounted) return;
+      setState(() => _plant = plant);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Falha ao carregar planta: $e')),
+      );
+      Navigator.of(context).pop();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
-
+    final plant = _plant;
     if (plant == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final plantingText =
-        plant!.dataPlantio != null
-            ? DateFormat('dd/MM/yyyy').format(plant!.dataPlantio!)
-            : 'Não informada';
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text(plant!.name.isNotEmpty ? plant!.name : 'Planta sem nome'),
-        backgroundColor: cs.primary,
-        foregroundColor: cs.onPrimary,
-        actions: [
-          IconButton(
-            tooltip: 'Editar',
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => PlantFormPage(plant: plant!)),
-              );
-            },
-          ),
-          IconButton(
-            tooltip: 'Excluir',
-            icon: const Icon(Icons.delete),
-            onPressed: () => _confirmDeletion(context),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Faixa de título usando as cores do tema
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            color: cs.primary,
-            child: Center(
-              child: Text(
-                'Detalhes da Planta',
-                style: tt.titleMedium?.copyWith(
-                  color: cs.onPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
+      appBar: AppBar(title: Text(plant.name)),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            _buildTopImage(),
+            const SizedBox(height: 20),
+            _buildSliderRow(
+              title: 'Temperatura',
+              value: plant.mediaTemperatura?.toDouble() ?? 0.0,
+              min: -10,
+              max: 75,
+              gradient: const LinearGradient(
+                colors: [Colors.blue, Colors.green, Colors.yellow, Colors.red],
               ),
+              unit: '°C',
+              icon: Icons.thermostat,
+              iconColor: Colors.redAccent,
             ),
-          ),
-
-          // Conteúdo
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _detailRow(context, 'Data de plantio:', plantingText),
-                  const SizedBox(height: 16),
-
-                  // Temperatura
-                  _statusBar(
-                    label: 'Temperatura',
-                    min: -10,
-                    max: 75,
-                    value: plant!.mediaTemperatura ?? 0,
-                    idealMin: plant!.temperaturaMin,
-                    idealMax: plant!.temperaturaMax,
-                    gradient: const LinearGradient(
-                      colors: [
-                        Colors.blue,
-                        Colors.green,
-                        Colors.yellow,
-                        Colors.red,
-                      ],
-                    ),
-                    unit: '°C',
-                    icon: const Icon(
-                      Icons.thermostat,
-                      size: 49,
-                      color: Colors.red,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Umidade
-                  _statusBar(
-                    label: 'Umidade',
-                    min: 0,
-                    max: 100,
-                    value: plant!.mediaUmidade ?? 0,
-                    idealMin: plant!.umidadeMin,
-                    idealMax: plant!.umidadeMax,
-                    gradient: const LinearGradient(
-                      colors: [
-                        Colors.white,
-                        Colors.blueAccent,
-                        Colors.blue,
-                        Colors.indigo,
-                      ],
-                    ),
-                    unit: '%',
-                    icon: const Icon(
-                      Icons.water_drop,
-                      size: 49,
-                      color: Colors.blue,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Luz
-                  _statusBar(
-                    label: 'Luz Solar (últimas 24h)',
-                    min: 0,
-                    max: 16,
-                    value: plant!.horasLuz ?? 0,
-                    idealMin: _idealLuzMin(plant!.exposicaoSolar ?? ''),
-                    idealMax: _idealLuzMax(plant!.exposicaoSolar ?? ''),
-                    gradient: const LinearGradient(
-                      colors: [Colors.black, Colors.orange, Colors.yellow],
-                      stops: [0.0, 0.6, 1.0],
-                    ),
-                    unit: 'h',
-                    icon: const Icon(
-                      Icons.wb_sunny,
-                      size: 49,
-                      color: Colors.amber,
-                    ),
-                  ),
-                ],
+            _buildSliderRow(
+              title: 'Umidade',
+              value: plant.mediaUmidade?.toDouble() ?? 0.0,
+              min: 0,
+              max: 100,
+              gradient: const LinearGradient(
+                colors: [Colors.white, Colors.blue, Colors.blueAccent],
               ),
+              unit: '%',
+              icon: Icons.opacity,
+              iconColor: Colors.blueAccent,
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _detailRow(BuildContext context, String label, String value) {
-    final tt = Theme.of(context).textTheme;
-    return Row(
-      children: [
-        Text(
-          label,
-          style: tt.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+            _buildSliderRow(
+              title: 'Sol',
+              value: plant.horasLuz?.toDouble() ?? 0.0,
+              min: 0,
+              max: 12,
+              gradient: const LinearGradient(
+                colors: [Colors.black, Colors.yellow],
+              ),
+              unit: 'h',
+              icon: Icons.wb_sunny,
+              iconColor: Colors.amber,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Plantada em: ${plant.dataPlantio != null ? DateFormat('dd/MM/yyyy').format(plant.dataPlantio!.toLocal()) : '---'}',
+            ),
+            Text('Exposição solar: ${plant.exposicaoSolar ?? '---'}'),
+          ],
         ),
-        const SizedBox(width: 8),
-        Text(value, style: tt.bodyMedium),
-      ],
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        child: CustomButton(
+          label: 'Editar planta',
+          icon: Icons.edit,
+          onPressed: () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => PlantFormPage(existingPlant: plant),
+              ),
+            );
+            if (mounted) _loadPlant();
+          },
+        ),
+      ),
     );
   }
 
-  Widget _statusBar({
-    required String label,
+  Widget _buildSliderRow({
+    required String title,
+    required double value,
     required double min,
     required double max,
-    required double value,
-    required int? idealMin,
-    required int? idealMax,
-    required Gradient gradient,
+    required LinearGradient gradient,
     required String unit,
-    required Icon icon,
+    required IconData icon,
+    required Color iconColor,
   }) {
-    const barHeight = 20.0;
     final clamped = value.clamp(min, max);
-    final percent = (clamped - min) / (max - min);
-    final iconSize = icon.size ?? 48.0;
-
-    final topPaddingForIcon = iconSize * 0.55;
-    final bottomPaddingForIcon = (iconSize - barHeight) / 2;
-    final iconTop = topPaddingForIcon - (iconSize - barHeight) / 2;
+    final t = (clamped - min) / (max - min == 0 ? 1 : (max - min));
+    const trackHeight = 12.0;
+    const iconSize = 20.0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('$label: ${clamped.toStringAsFixed(1)}$unit'),
+        Text('$title: ${clamped.toStringAsFixed(1)} $unit'),
         const SizedBox(height: 6),
         LayoutBuilder(
           builder: (context, constraints) {
-            final barWidth = constraints.maxWidth;
-            final iconLeft = (percent * barWidth - iconSize / 2).clamp(
-              0.0,
-              barWidth - iconSize,
-            );
-
+            final w = constraints.maxWidth;
+            final left = (w - iconSize) * t;
+            final top = (24 - iconSize) / 2;
             return SizedBox(
-              height: topPaddingForIcon + barHeight + bottomPaddingForIcon,
+              height: 24,
               child: Stack(
-                clipBehavior: Clip.none,
                 children: [
                   Positioned.fill(
-                    top: topPaddingForIcon,
-                    bottom: bottomPaddingForIcon,
+                    top: (24 - trackHeight) / 2,
+                    bottom: (24 - trackHeight) / 2,
                     child: Container(
-                      height: barHeight,
                       decoration: BoxDecoration(
                         gradient: gradient,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
                   ),
-                  Positioned(left: iconLeft, top: iconTop, child: icon),
+                  Positioned(
+                    left: left,
+                    top: top,
+                    child: Icon(icon, size: iconSize, color: iconColor),
+                  ),
                 ],
               ),
             );
           },
         ),
-        if (idealMin != null && idealMax != null) const SizedBox(height: 8),
-        if (idealMin != null && idealMax != null)
-          Text(
-            'Ideal: $idealMin–$idealMax$unit',
-            style: const TextStyle(fontSize: 12),
-          ),
+        const SizedBox(height: 18),
       ],
     );
   }
 
-  int _idealLuzMin(String tipo) {
-    switch (tipo.toLowerCase()) {
-      case 'sol pleno':
-        return 6;
-      case 'parcial':
-        return 3;
-      case 'sombra':
-        return 0;
-      default:
-        return 0;
+  Widget _buildTopImage() {
+    final url = _plant?.imageURL;
+    const double height = 180;
+    if (url != null && url.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.network(
+          url,
+          height: height,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _imagePlaceholder(height: height),
+          loadingBuilder: (context, child, progress) =>
+              progress == null ? child : _imagePlaceholder(height: height, isLoading: true),
+        ),
+      );
     }
+    return _imagePlaceholder(height: height);
   }
 
-  int _idealLuzMax(String tipo) {
-    switch (tipo.toLowerCase()) {
-      case 'sol pleno':
-        return 12;
-      case 'parcial':
-        return 6;
-      case 'sombra':
-        return 3;
-      default:
-        return 16;
-    }
-  }
-
-  void _confirmDeletion(BuildContext context) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder:
-          (_) => AlertDialog(
-            title: const Text('Excluir planta'),
-            content: const Text('Deseja realmente excluir esta planta?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancelar'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text(
-                  'Excluir',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
-            ],
-          ),
+  Widget _imagePlaceholder({double height = 180, bool isLoading = false}) {
+    return Container(
+      height: height,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      alignment: Alignment.center,
+      child: isLoading
+          ? const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.image, color: Colors.grey, size: 32),
     );
-
-    if (confirm == true) {
-      await PlantService().deletePlant(plant!.id);
-      if (context.mounted) {
-        Navigator.pop(context);
-      }
-    }
   }
 }

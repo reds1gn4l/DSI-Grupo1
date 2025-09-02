@@ -13,4 +13,9 @@ class LeafGlyph extends StatelessWidget {
   Widget build(BuildContext context) {
     return Icon(Icons.eco, size: size, color: color);
   }
+
+  /// Retorna um ícone padrão (folha cinza grande) para estados vazios
+  static Widget empty() {
+    return const LeafGlyph(size: 60, color: Colors.grey);
+  }
 }
