@@ -1,5 +1,6 @@
 class Product {
   final String id;
+  final String nome;
   final String cientificName;
   final DateTime? dataPlantio;
   final String descricaoPlanta;
@@ -15,6 +16,7 @@ class Product {
 
   Product({
     required this.id,
+    required this.nome,
     required this.cientificName,
     this.dataPlantio,
     required this.descricaoPlanta,
@@ -29,41 +31,118 @@ class Product {
     required this.imageURL,
   });
 
-  factory Product.fromMap(String id, Map<String, dynamic> data) {
+  factory Product.fromMap(
+    String id,
+    Map<
+      String,
+      dynamic
+    >
+    data,
+  ) {
     return Product(
-      id: id,
-      cientificName: data['CientificName'] ?? '',
+      id:
+          id,
+      nome:
+          data['Nome'] ??
+          '',
+      cientificName:
+          data['CientificName'] ??
+          '',
       dataPlantio:
-          data['DataPlantio'] != null
-              ? DateTime.tryParse(data['DataPlantio'].toString())
+          data['DataPlantio'] !=
+                  null
+              ? DateTime.tryParse(
+                data['DataPlantio'].toString(),
+              )
               : null,
-      descricaoPlanta: data['DescricaoPlanta'] ?? '',
-      descricaoProd: data['DescricaoProd'] ?? '',
-      fxTemp: data['FxTemp'] ?? '',
-      fxUmidade: data['FxUmidade'] ?? '',
-      precoUnt: (data['PrecoUnt'] ?? 0).toDouble(),
-      tempoSol: data['TempoSol'] ?? '',
-      stock: (data['stock'] as num?)?.toInt(),
-      category: data['category'],
-      valDias: (data['ValDias'] as num?)?.toInt(),
-      imageURL: data['imageURL'] ?? '',
+      descricaoPlanta:
+          data['DescricaoPlanta'] ??
+          '',
+      descricaoProd:
+          data['DescricaoProd'] ??
+          '',
+      fxTemp:
+          data['FxTemp'] ??
+          '',
+      fxUmidade:
+          data['FxUmidade'] ??
+          '',
+      precoUnt: Product._parsePrecoUnt(
+        data['PrecoUnt'] ??
+            data['precoUnt'],
+      ),
+      tempoSol:
+          data['TempoSol'] ??
+          '',
+      stock:
+          (data['stock']
+                  as num?)
+              ?.toInt(),
+      category:
+          data['category'],
+      valDias:
+          (data['ValDias']
+                  as num?)
+              ?.toInt(),
+      imageURL:
+          data['imageURL'] ??
+          '',
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<
+    String,
+    dynamic
+  >
+  toMap() {
     return {
-      'CientificName': cientificName,
-      'DataPlantio': dataPlantio?.toIso8601String(),
-      'DescricaoPlanta': descricaoPlanta,
-      'DescricaoProd': descricaoProd,
-      'FxTemp': fxTemp,
-      'FxUmidade': fxUmidade,
-      'PrecoUnt': precoUnt,
-      'TempoSol': tempoSol,
-      'stock': stock,
-      'category': category,
-      'ValDias': valDias,
-      'imageURL': imageURL,
+      'Nome':
+          nome,
+      'CientificName':
+          cientificName,
+      'DataPlantio':
+          dataPlantio?.toIso8601String(),
+      'DescricaoPlanta':
+          descricaoPlanta,
+      'DescricaoProd':
+          descricaoProd,
+      'FxTemp':
+          fxTemp,
+      'FxUmidade':
+          fxUmidade,
+      'PrecoUnt':
+          precoUnt,
+      'TempoSol':
+          tempoSol,
+      'stock':
+          stock,
+      'category':
+          category,
+      'ValDias':
+          valDias,
+      'imageURL':
+          imageURL,
     };
+  }
+
+  static double _parsePrecoUnt(
+    dynamic value,
+  ) {
+    if (value ==
+        null)
+      return 0.0;
+    if (value
+        is num)
+      return value.toDouble();
+    if (value
+        is String)
+      return double.tryParse(
+            value.replaceAll(
+              ',',
+              '.',
+            ),
+          ) ??
+          0.0;
+    return 0.0;
   }
 }
