@@ -35,7 +35,7 @@ class Supply {
           }
         } catch (_) {}
       }
-    } else if (rawCreatedAt is dynamic && rawCreatedAt != null) {
+    } else if (rawCreatedAt != null) {
       try {
         parsedCreatedAt = (rawCreatedAt as dynamic).toDate() as DateTime;
       } catch (_) {}
@@ -44,14 +44,16 @@ class Supply {
     return Supply(
       id: id,
       name: data['name'] ?? '',
-      quantity: (data['quantity'] ?? 0) is int
-          ? data['quantity'] as int
-          : int.tryParse('${data['quantity']}') ?? 0,
+      quantity:
+          (data['quantity'] ?? 0) is int
+              ? data['quantity'] as int
+              : int.tryParse('${data['quantity']}') ?? 0,
       validity: data['validity'] ?? '',
       createdAt: parsedCreatedAt,
-      imageUrl: (data['imageUrl'] as String?)?.trim().isEmpty == true
-          ? null
-          : data['imageUrl'],
+      imageUrl:
+          (data['imageUrl'] as String?)?.trim().isEmpty == true
+              ? null
+              : data['imageUrl'],
     );
   }
 
@@ -59,8 +61,8 @@ class Supply {
     return {
       'name': name,
       'quantity': quantity,
-      'validity': validity, 
-      'createdAt': createdAt, 
+      'validity': validity,
+      'createdAt': createdAt,
       if (imageUrl != null && imageUrl!.trim().isNotEmpty) 'imageUrl': imageUrl,
     };
   }

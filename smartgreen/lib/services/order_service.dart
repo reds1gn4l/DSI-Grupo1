@@ -24,8 +24,7 @@ class OrderService {
 
     try {
       await _addSuppliesFromOrder(order);
-    } catch (e) {
-    }
+    } catch (e) {}
 
     return doc.id;
   }
@@ -40,12 +39,10 @@ class OrderService {
         .map((snap) => model.Order.fromMap(snap.id, snap.data() ?? {}));
   }
 
-  
   Future<void> _addSuppliesFromOrder(model.Order order) async {
     final now = DateTime.now();
     final formatter = DateFormat('dd/MM/yyyy');
 
-    
     for (final it in order.items) {
       StoreProduct? product;
       try {
@@ -55,13 +52,12 @@ class OrderService {
       }
 
       final String nome =
-          (product?.cientificName?.trim().isNotEmpty ?? false)
+          (product?.cientificName.trim().isNotEmpty ?? false)
               ? product!.cientificName
               : 'Produto';
 
       final int qty = it.quantity;
 
-      
       String validity = '';
       final int? valDias = product?.valDias;
       if (valDias != null && valDias > 0) {
@@ -73,11 +69,12 @@ class OrderService {
         id: '',
         name: nome,
         quantity: qty,
-        validity: validity, 
+        validity: validity,
         createdAt: now,
-        imageUrl: (product?.imageURL.trim().isNotEmpty ?? false)
-            ? product!.imageURL
-            : null,
+        imageUrl:
+            (product?.imageURL.trim().isNotEmpty ?? false)
+                ? product!.imageURL
+                : null,
       );
 
       await _supplyService.addSupply(supply);
