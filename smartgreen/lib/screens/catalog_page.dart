@@ -158,6 +158,20 @@ class CatalogPageState
   _chooseQtyAndAdd(
     Product p,
   ) async {
+    if (p.stock ==
+        0) {
+      // Se fora de estoque, não abre o modal e mostra aviso
+      ScaffoldMessenger.of(
+          context,
+        )
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          _cartSnack(
+            'Produto fora de estoque',
+          ),
+        );
+      return;
+    }
     final theme = Theme.of(
       context,
     );
@@ -292,35 +306,39 @@ class CatalogPageState
                               FontWeight.w600,
                         ),
                       ),
-                      onPressed: () {
-                        final cart =
-                            context
-                                .read<
-                                  CartService
-                                >();
-                        for (
-                          var i = 0;
-                          i <
-                              qty;
-                          i++
-                        ) {
-                          cart.addToCart(
-                            p,
-                          );
-                        }
-                        Navigator.pop(
-                          context,
-                        );
-                        ScaffoldMessenger.of(
-                            context,
-                          )
-                          ..hideCurrentSnackBar()
-                          ..showSnackBar(
-                            _cartSnack(
-                              '$qty × "${p.nome}" adicionados',
-                            ),
-                          );
-                      },
+                      onPressed:
+                          (p.stock ==
+                                  0)
+                              ? null
+                              : () {
+                                final cart =
+                                    context
+                                        .read<
+                                          CartService
+                                        >();
+                                for (
+                                  var i = 0;
+                                  i <
+                                      qty;
+                                  i++
+                                ) {
+                                  cart.addToCart(
+                                    p,
+                                  );
+                                }
+                                Navigator.pop(
+                                  context,
+                                );
+                                ScaffoldMessenger.of(
+                                    context,
+                                  )
+                                  ..hideCurrentSnackBar()
+                                  ..showSnackBar(
+                                    _cartSnack(
+                                      '$qty × "${p.nome}" adicionados',
+                                    ),
+                                  );
+                              },
                     ),
                   ),
                 ],
@@ -565,13 +583,19 @@ class CatalogPageState
                                           ),
                                         ),
                                         onPressed:
-                                            () => _quickAdd(
-                                              product,
-                                            ),
+                                            (product.stock ==
+                                                    0)
+                                                ? null
+                                                : () => _quickAdd(
+                                                  product,
+                                                ),
                                         onLongPress:
-                                            () => _chooseQtyAndAdd(
-                                              product,
-                                            ),
+                                            (product.stock ==
+                                                    0)
+                                                ? null
+                                                : () => _chooseQtyAndAdd(
+                                                  product,
+                                                ),
                                         child: const Icon(
                                           Icons.add_shopping_cart,
                                           size:

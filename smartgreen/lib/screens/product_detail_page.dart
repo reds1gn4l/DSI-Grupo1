@@ -149,17 +149,21 @@ class ProductDetailPage
                       tt.bodyMedium,
                 ),
               ),
-            if (product.stock !=
-                null)
+            if (product.stock ==
+                0)
               Padding(
                 padding: const EdgeInsets.only(
                   bottom:
                       6,
                 ),
                 child: Text(
-                  'Estoque: ${product.stock}',
-                  style:
-                      tt.bodyMedium,
+                  'Fora de estoque',
+                  style: tt.bodyMedium?.copyWith(
+                    color:
+                        Colors.red,
+                    fontWeight:
+                        FontWeight.bold,
+                  ),
                 ),
               ),
             if (product.valDias !=
@@ -276,7 +280,7 @@ class ProductDetailPage
 
             const Spacer(),
 
-            // Botão "Adicionar ao Carrinho"
+            // Botão "Adicionar ao Carrinho" (desabilitado se fora de estoque)
             SizedBox(
               width:
                   double.infinity,
@@ -289,51 +293,55 @@ class ProductDetailPage
                     cs.primary,
                 textColor:
                     cs.onPrimary,
-                onPressed: () {
-                  final cart = Provider.of<
-                    CartService
-                  >(
-                    context,
-                    listen:
-                        false,
-                  );
-                  cart.addToCart(
-                    product,
-                  );
-                  ScaffoldMessenger.of(
-                      context,
-                    )
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(
-                      SnackBar(
-                        behavior:
-                            SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            12,
-                          ),
-                        ),
-                        content: const Text(
-                          'Produto adicionado ao carrinho!',
-                        ),
-                        action: SnackBarAction(
-                          label:
-                              'Fechar',
-                          textColor:
-                              cs.secondary,
-                          onPressed: () {
-                            ScaffoldMessenger.of(
+                onPressed:
+                    (product.stock ==
+                            0)
+                        ? null
+                        : () {
+                          final cart = Provider.of<
+                            CartService
+                          >(
+                            context,
+                            listen:
+                                false,
+                          );
+                          cart.addToCart(
+                            product,
+                          );
+                          ScaffoldMessenger.of(
                               context,
-                            ).hideCurrentSnackBar();
-                          },
-                        ),
-                        duration: const Duration(
-                          seconds:
-                              2,
-                        ),
-                      ),
-                    );
-                },
+                            )
+                            ..hideCurrentSnackBar()
+                            ..showSnackBar(
+                              SnackBar(
+                                behavior:
+                                    SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    12,
+                                  ),
+                                ),
+                                content: const Text(
+                                  'Produto adicionado ao carrinho!',
+                                ),
+                                action: SnackBarAction(
+                                  label:
+                                      'Fechar',
+                                  textColor:
+                                      cs.secondary,
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(
+                                      context,
+                                    ).hideCurrentSnackBar();
+                                  },
+                                ),
+                                duration: const Duration(
+                                  seconds:
+                                      2,
+                                ),
+                              ),
+                            );
+                        },
               ),
             ),
           ],

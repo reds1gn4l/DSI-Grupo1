@@ -9,78 +9,184 @@ import 'supply_service.dart';
 
 class OrderService {
   final String userId;
-  OrderService({required this.userId});
+  OrderService({
+    required this.userId,
+  });
 
-  final fs.FirebaseFirestore _db = fs.FirebaseFirestore.instance;
-  final StoreProductService _productService = StoreProductService();
-  final SupplyService _supplyService = SupplyService();
+  final fs.FirebaseFirestore _db =
+      fs.FirebaseFirestore.instance;
+  final StoreProductService _productService =
+      StoreProductService();
+  final SupplyService _supplyService =
+      SupplyService();
 
-  Future<String> addOrder(model.Order order) async {
+  Future<
+    String
+  >
+  addOrder(
+    model.Order order,
+  ) async {
     final doc = await _db
-        .collection('orders')
-        .doc(userId)
-        .collection('user_orders')
-        .add(order.toMap());
+        .collection(
+          'orders',
+        )
+        .doc(
+          userId,
+        )
+        .collection(
+          'user_orders',
+        )
+        .add(
+          order.toMap(),
+        );
+
+    // Diminui o estoque dos produtos comprados
+    for (final item in order.items) {
+      try {
+        final product = await _productService.getById(
+          item.productId,
+        );
+        if (product !=
+                null &&
+            product.stock !=
+                null) {
+          final newStock = (product.stock! -
+                  item.quantity)
+              .clamp(
+                0,
+                999999,
+              );
+          final updated = product.copyWith(
+            stock:
+                newStock,
+          );
+          await _productService.update(
+            updated,
+          );
+        }
+      } catch (
+        e
+      ) {
+        // ignore erro individual
+      }
+    }
 
     try {
-      await _addSuppliesFromOrder(order);
-    } catch (e) {
-    }
+      await _addSuppliesFromOrder(
+        order,
+      );
+    } catch (
+      e
+    ) {}
 
     return doc.id;
   }
 
-  Stream<model.Order> watchOrder(String orderId) {
+  Stream<
+    model.Order
+  >
+  watchOrder(
+    String orderId,
+  ) {
     return _db
-        .collection('orders')
-        .doc(userId)
-        .collection('user_orders')
-        .doc(orderId)
+        .collection(
+          'orders',
+        )
+        .doc(
+          userId,
+        )
+        .collection(
+          'user_orders',
+        )
+        .doc(
+          orderId,
+        )
         .snapshots()
-        .map((snap) => model.Order.fromMap(snap.id, snap.data() ?? {}));
+        .map(
+          (
+            snap,
+          ) => model.Order.fromMap(
+            snap.id,
+            snap.data() ??
+                {},
+          ),
+        );
   }
 
-  
-  Future<void> _addSuppliesFromOrder(model.Order order) async {
-    final now = DateTime.now();
-    final formatter = DateFormat('dd/MM/yyyy');
+  Future<
+    void
+  >
+  _addSuppliesFromOrder(
+    model.Order order,
+  ) async {
+    final now =
+        DateTime.now();
+    final formatter = DateFormat(
+      'dd/MM/yyyy',
+    );
 
-    
     for (final it in order.items) {
       StoreProduct? product;
       try {
-        product = await _productService.getById(it.productId);
-      } catch (_) {
-        product = null;
+        product = await _productService.getById(
+          it.productId,
+        );
+      } catch (
+        _
+      ) {
+        product =
+            null;
       }
 
       final String nome =
-          (product?.cientificName?.trim().isNotEmpty ?? false)
+          (product?.cientificName.trim().isNotEmpty ??
+                  false)
               ? product!.cientificName
               : 'Produto';
 
-      final int qty = it.quantity;
+      final int qty =
+          it.quantity;
 
-      
-      String validity = '';
-      final int? valDias = product?.valDias;
-      if (valDias != null && valDias > 0) {
-        final v = now.add(Duration(days: valDias));
-        validity = formatter.format(v);
+      String validity =
+          '';
+      final int? valDias =
+          product?.valDias;
+      if (valDias !=
+              null &&
+          valDias >
+              0) {
+        final v = now.add(
+          Duration(
+            days:
+                valDias,
+          ),
+        );
+        validity = formatter.format(
+          v,
+        );
       }
 
       final supply = Supply(
-        id: '',
-        name: nome,
-        quantity: qty,
-        validity: validity, 
-        createdAt: now,
-        imageUrl: (product?.imageURL.trim().isNotEmpty ?? false)
-            ? product!.imageURL
-            : null,
+        id:
+            '',
+        name:
+            nome,
+        quantity:
+            qty,
+        validity:
+            validity,
+        createdAt:
+            now,
+        imageUrl:
+            (product?.imageURL.trim().isNotEmpty ??
+                    false)
+                ? product!.imageURL
+                : null,
       );
 
-      await _supplyService.addSupply(supply);
+      await _supplyService.addSupply(
+        supply,
+      );
     }
   }
 }

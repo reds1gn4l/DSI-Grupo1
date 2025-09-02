@@ -428,11 +428,12 @@ class _ProductFormPageState
                   _formKey,
               child: Column(
                 children: [
+                  // Nome
                   TextFormField(
                     controller:
                         _nameCtrl,
                     decoration: _dec(
-                      'Nome *',
+                      'Nome',
                     ),
                     validator:
                         (
@@ -448,17 +449,237 @@ class _ProductFormPageState
                     height:
                         12,
                   ),
-                  TextFormField(
-                    controller:
-                        _cientificNameCtrl,
-                    decoration: _dec(
-                      'Nome Científico',
+                  // Nome Científico (se não for insumo/ferramenta)
+                  if (_catValue !=
+                      'Insumo/Ferramenta') ...[
+                    TextFormField(
+                      controller:
+                          _cientificNameCtrl,
+                      decoration: _dec(
+                        'Nome Científico',
+                      ),
                     ),
+                    const SizedBox(
+                      height:
+                          12,
+                    ),
+                  ],
+                  // Categoria
+                  DropdownButtonFormField<
+                    String
+                  >(
+                    value:
+                        _catValue?.isNotEmpty ==
+                                true
+                            ? _catValue
+                            : null,
+                    decoration: _dec(
+                      'Categoria',
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value:
+                            'Planta/Semente',
+                        child: Text(
+                          'Planta/Semente',
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value:
+                            'Insumo/Ferramenta',
+                        child: Text(
+                          'Insumo/Ferramenta',
+                        ),
+                      ),
+                    ],
+                    onChanged:
+                        _saving
+                            ? null
+                            : (
+                              v,
+                            ) => setState(
+                              () =>
+                                  _catValue =
+                                      v,
+                            ),
+                    validator:
+                        (
+                          v,
+                        ) =>
+                            (v ==
+                                        null ||
+                                    v.isEmpty)
+                                ? 'Selecione a categoria'
+                                : null,
                   ),
                   const SizedBox(
                     height:
                         12,
                   ),
+                  // Descrição da Planta (se não for insumo/ferramenta)
+                  if (_catValue !=
+                      'Insumo/Ferramenta') ...[
+                    TextFormField(
+                      controller:
+                          _descPlantaCtrl,
+                      decoration: _dec(
+                        'Descrição da Planta',
+                      ),
+                      maxLines:
+                          2,
+                    ),
+                    const SizedBox(
+                      height:
+                          12,
+                    ),
+                  ],
+                  // Temperatura (mínima e máxima) (se não for insumo/ferramenta)
+                  if (_catValue !=
+                      'Insumo/Ferramenta') ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller:
+                                _tempMinCtrl,
+                            decoration: _dec(
+                              'Temperatura Mínima (°C)',
+                            ),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal:
+                                  true,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          width:
+                              12,
+                        ),
+                        Expanded(
+                          child: TextFormField(
+                            controller:
+                                _tempMaxCtrl,
+                            decoration: _dec(
+                              'Temperatura Máxima (°C)',
+                            ),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal:
+                                  true,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(
+                      height:
+                          12,
+                    ),
+                  ],
+                  // Umidade (mínima e máxima) (se não for insumo/ferramenta)
+                  if (_catValue !=
+                      'Insumo/Ferramenta') ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller:
+                                _umidadeMinCtrl,
+                            decoration: _dec(
+                              'Umidade Mínima (%)',
+                            ),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal:
+                                  true,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          width:
+                              12,
+                        ),
+                        Expanded(
+                          child: TextFormField(
+                            controller:
+                                _umidadeMaxCtrl,
+                            decoration: _dec(
+                              'Umidade Máxima (%)',
+                            ),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal:
+                                  true,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(
+                      height:
+                          12,
+                    ),
+                  ],
+                  // Tempo de Sol (se não for insumo/ferramenta)
+                  if (_catValue !=
+                      'Insumo/Ferramenta') ...[
+                    DropdownButtonFormField<
+                      String
+                    >(
+                      value:
+                          _tempoSolValue?.isNotEmpty ==
+                                  true
+                              ? _tempoSolValue
+                              : null,
+                      decoration: _dec(
+                        'Tempo de Sol',
+                      ),
+                      items: const [
+                        DropdownMenuItem(
+                          value:
+                              'Sombra',
+                          child: Text(
+                            'Sombra',
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value:
+                              'Meia Sombra',
+                          child: Text(
+                            'Meia Sombra',
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value:
+                              'Sol Pleno',
+                          child: Text(
+                            'Sol Pleno',
+                          ),
+                        ),
+                      ],
+                      onChanged:
+                          _saving
+                              ? null
+                              : (
+                                v,
+                              ) => setState(
+                                () =>
+                                    _tempoSolValue =
+                                        v,
+                              ),
+                      validator:
+                          (
+                            v,
+                          ) =>
+                              (v ==
+                                          null ||
+                                      v.isEmpty)
+                                  ? 'Selecione o tempo de sol'
+                                  : null,
+                    ),
+                    const SizedBox(
+                      height:
+                          12,
+                    ),
+                  ],
+                  // Descrição do Produto
                   TextFormField(
                     controller:
                         _descCtrl,
@@ -472,167 +693,7 @@ class _ProductFormPageState
                     height:
                         12,
                   ),
-                  TextFormField(
-                    controller:
-                        _descPlantaCtrl,
-                    decoration: _dec(
-                      'Descrição da Planta',
-                    ),
-                    maxLines:
-                        2,
-                  ),
-                  const SizedBox(
-                    height:
-                        12,
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller:
-                              _tempMinCtrl,
-                          decoration: _dec(
-                            'Temperatura Mínima (°C)',
-                          ),
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal:
-                                true,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        width:
-                            12,
-                      ),
-                      Expanded(
-                        child: TextFormField(
-                          controller:
-                              _tempMaxCtrl,
-                          decoration: _dec(
-                            'Temperatura Máxima (°C)',
-                          ),
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal:
-                                true,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height:
-                        12,
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller:
-                              _umidadeMinCtrl,
-                          decoration: _dec(
-                            'Umidade Mínima (%)',
-                          ),
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal:
-                                true,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        width:
-                            12,
-                      ),
-                      Expanded(
-                        child: TextFormField(
-                          controller:
-                              _umidadeMaxCtrl,
-                          decoration: _dec(
-                            'Umidade Máxima (%)',
-                          ),
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal:
-                                true,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(
-                    height:
-                        12,
-                  ),
-                  DropdownButtonFormField<
-                    String
-                  >(
-                    value:
-                        _tempoSolValue?.isNotEmpty ==
-                                true
-                            ? _tempoSolValue
-                            : null,
-                    decoration: _dec(
-                      'Tempo de Sol',
-                    ),
-                    items: const [
-                      DropdownMenuItem(
-                        value:
-                            'Sombra',
-                        child: Text(
-                          'Sombra',
-                        ),
-                      ),
-                      DropdownMenuItem(
-                        value:
-                            'Meio Sol',
-                        child: Text(
-                          'Meio Sol',
-                        ),
-                      ),
-                      DropdownMenuItem(
-                        value:
-                            'Sol',
-                        child: Text(
-                          'Sol',
-                        ),
-                      ),
-                    ],
-                    onChanged:
-                        _saving
-                            ? null
-                            : (
-                              v,
-                            ) => setState(
-                              () =>
-                                  _tempoSolValue =
-                                      v,
-                            ),
-                    validator:
-                        (
-                          v,
-                        ) =>
-                            (v ==
-                                        null ||
-                                    v.isEmpty)
-                                ? 'Selecione o tempo de sol'
-                                : null,
-                  ),
-                  const SizedBox(
-                    height:
-                        12,
-                  ),
-                  TextFormField(
-                    controller:
-                        _valDiasCtrl,
-                    decoration: _dec(
-                      'Validade (dias)',
-                    ),
-                    keyboardType:
-                        TextInputType.number,
-                  ),
-                  const SizedBox(
-                    height:
-                        12,
-                  ),
-                  // ...campo removido...
+                  // Preço e Estoque
                   Row(
                     children: [
                       Expanded(
@@ -707,57 +768,21 @@ class _ProductFormPageState
                     height:
                         12,
                   ),
-                  DropdownButtonFormField<
-                    String
-                  >(
-                    value:
-                        _catValue?.isNotEmpty ==
-                                true
-                            ? _catValue
-                            : null,
+                  // Validade
+                  TextFormField(
+                    controller:
+                        _valDiasCtrl,
                     decoration: _dec(
-                      'Categoria',
+                      'Validade (dias)',
                     ),
-                    items: const [
-                      DropdownMenuItem(
-                        value:
-                            'Planta/Semente',
-                        child: Text(
-                          'Planta/Semente',
-                        ),
-                      ),
-                      DropdownMenuItem(
-                        value:
-                            'Insumo/Ferramenta',
-                        child: Text(
-                          'Insumo/Ferramenta',
-                        ),
-                      ),
-                    ],
-                    onChanged:
-                        _saving
-                            ? null
-                            : (
-                              v,
-                            ) => setState(
-                              () =>
-                                  _catValue =
-                                      v,
-                            ),
-                    validator:
-                        (
-                          v,
-                        ) =>
-                            (v ==
-                                        null ||
-                                    v.isEmpty)
-                                ? 'Selecione a categoria'
-                                : null,
+                    keyboardType:
+                        TextInputType.number,
                   ),
                   const SizedBox(
                     height:
                         12,
                   ),
+                  // URL da imagem
                   TextFormField(
                     controller:
                         _imgCtrl,
