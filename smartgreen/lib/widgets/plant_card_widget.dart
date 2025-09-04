@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/plant.dart';
 import 'leaf_glyph.dart';
+import '../services/user_photo_service.dart';
 
 class PlantCardWidget extends StatelessWidget {
   final Plant plant;
@@ -73,7 +75,10 @@ class PlantCardWidget extends StatelessWidget {
                       flex: 3,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(10),
-                        child: _buildImage(),
+                        child: AspectRatio(
+                          aspectRatio: 4 / 3,
+                          child: _buildImage(),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -127,30 +132,58 @@ class PlantCardWidget extends StatelessWidget {
 
   Widget _buildImage() {
     final url = plant.imageURL;
-    if (url != null && url.isNotEmpty) {
-      return Image.network(
-        url,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _imagePlaceholder(),
-        loadingBuilder: (context, child, progress) =>
-            progress == null ? child : _imagePlaceholder(isLoading: true),
-      );
-    }
-    return _imagePlaceholder();
+    return FutureBuilder<String?>(
+      future: UserPhotoService().getPhotoPath(plant.id),
+      builder: (context, snap) {
+        final localPath = snap.data;
+        if (localPath != null && localPath.isNotEmpty && File(localPath).existsSync()) {
+          return Image.file(
+            File(localPath),
+            fit: BoxFit.cover,
+            alignment: Alignment.center,
+            errorBuilder: (_, __, ___) => _imagePlaceholder(),
+          );
+        }
+        if (url != null && url.isNotEmpty) {
+          return Image.network(
+            url,
+            fit: BoxFit.cover,
+            alignment: Alignment.center,
+            errorBuilder: (_, __, ___) => _imagePlaceholder(),
+            loadingBuilder: (context, child, progress) =>
+                progress == null ? child : _imagePlaceholder(isLoading: true),
+          );
+        }
+        return _imagePlaceholder(isLoading: snap.connectionState == ConnectionState.waiting);
+      },
+    );
   }
 
   Widget _imagePlaceholder({bool isLoading = false}) {
     return Container(
-      color: Colors.grey.shade200,
-      child: Center(
-        child: isLoading
-            ? const SizedBox(
-                height: 18,
-                width: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : const Icon(Icons.image, color: Colors.grey, size: 24),
-      ),
+      color: Colors.grey.shade100,
+      alignment: Alignment.center,
+      child: isLoading
+          ? const SizedBox(
+              height: 18,
+              width: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  LeafGlyph(size: 40, color: Colors.grey),
+                  SizedBox(height: 4),
+                  Text(
+                    'Imagem indisponível',
+                    style: TextStyle(color: Colors.grey, fontSize: 11),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
     );
   }
 }

@@ -1,8 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../models/plant.dart';
 import '../services/plant_service.dart';
+import '../services/user_photo_service.dart';
 import '../widgets/custom_button.dart';
 import 'plant_form_page.dart';
 
@@ -18,6 +21,8 @@ class PlantDetailPage extends StatefulWidget {
 class _PlantDetailPageState extends State<PlantDetailPage> {
   final PlantService _service = PlantService();
   Plant? _plant;
+  String? _localPhotoPath;
+  final _photoService = UserPhotoService();
 
   @override
   void initState() {
@@ -29,7 +34,12 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
     try {
       final plant = await _service.fetchPlantById(widget.plantId);
       if (!mounted) return;
-      setState(() => _plant = plant);
+      final localPath = await _photoService.getPhotoPath(widget.plantId);
+      if (!mounted) return;
+      setState(() {
+        _plant = plant;
+        _localPhotoPath = localPath;
+      });
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -47,7 +57,16 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(plant.name)),
+      appBar: AppBar(
+        title: Text(plant.name),
+        actions: [
+          IconButton(
+            tooltip: 'Tirar foto',
+            icon: const Icon(Icons.camera_alt),
+            onPressed: _onTakePhoto,
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -189,6 +208,19 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
   Widget _buildTopImage() {
     final url = _plant?.imageURL;
     const double height = 180;
+    if (_localPhotoPath != null && _localPhotoPath!.isNotEmpty && File(_localPhotoPath!).existsSync()) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.file(
+          File(_localPhotoPath!),
+          height: height,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          alignment: Alignment.center,
+          errorBuilder: (_, __, ___) => _imagePlaceholder(height: height),
+        ),
+      );
+    }
     if (url != null && url.isNotEmpty) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(12),
@@ -197,9 +229,9 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
           height: height,
           width: double.infinity,
           fit: BoxFit.cover,
+          alignment: Alignment.center,
+          // Mostra nosso placeholder apenas em erro; no carregamento inicial deixa em branco
           errorBuilder: (_, __, ___) => _imagePlaceholder(height: height),
-          loadingBuilder: (context, child, progress) =>
-              progress == null ? child : _imagePlaceholder(height: height, isLoading: true),
         ),
       );
     }
@@ -211,17 +243,52 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
       height: height,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.grey.shade200,
+        color: Colors.grey.shade100,
         borderRadius: BorderRadius.circular(12),
       ),
       alignment: Alignment.center,
       child: isLoading
           ? const SizedBox(
-              height: 20,
-              width: 20,
+              height: 22,
+              width: 22,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
-          : const Icon(Icons.image, color: Colors.grey, size: 32),
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.eco, size: 60, color: Colors.grey),
+                const SizedBox(height: 8),
+                const Text(
+                  'Imagem indisponível',
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
     );
+  }
+}
+
+extension on BuildContext {
+  void showSnack(String msg) {
+    ScaffoldMessenger.of(this).showSnackBar(SnackBar(content: Text(msg)));
+  }
+}
+
+extension _PickSave on _PlantDetailPageState {
+  Future<void> _onTakePhoto() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: ImageSource.camera, maxWidth: 2048, imageQuality: 85);
+      if (image == null) return; // user canceled
+      final savedPath = await _photoService.savePhotoForPlant(widget.plantId, File(image.path));
+      if (!mounted) return;
+      setState(() => _localPhotoPath = savedPath);
+      if (!mounted) return;
+      context.showSnack('Foto salva para esta planta.');
+    } catch (e) {
+      if (!mounted) return;
+      context.showSnack('Falha ao salvar foto: $e');
+    }
   }
 }
