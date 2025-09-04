@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/plant.dart';
+import '../models/plant.dart'; 
+import '../globals.dart';
 import '../services/plant_service.dart';
 import '../widgets/plant_card_widget.dart';
 import '../widgets/leaf_glyph.dart';
@@ -46,15 +47,17 @@ class PlantListPageState extends State<PlantListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: FutureBuilder<List<Plant>>(
-        future: _service.getAllPlants(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
+    final uid = currentUser?.id;
+    return Scaffold( 
+      body: uid == null
+          ? const Center(child: Text('Faça login para ver suas plantas'))
+          : StreamBuilder<List<Plant>>( 
+        stream: _service.getPlantsByUser(uid), 
+        builder: (context, snapshot) { 
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-
-          final plants = snapshot.data!;
+          final plants = snapshot.data ?? const <Plant>[]; 
           final filtered =
               plants
                   .where((p) => p.name.toLowerCase().contains(_search))
@@ -110,8 +113,8 @@ class PlantListPageState extends State<PlantListPage> {
                   },
                 ),
           );
-        },
-      ),
+        }, 
+      ), 
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
         child: SizedBox(

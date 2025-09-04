@@ -1,4 +1,6 @@
+import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../globals.dart';
 import '../models/plant.dart';
 
 class PlantService {
@@ -6,6 +8,21 @@ class PlantService {
 
   Stream<List<Plant>> getPlants() {
     return _db.collection('plants').snapshots().map((snap) {
+      final plants =
+          snap.docs.map((doc) => Plant.fromMap(doc.id, doc.data())).toList();
+      plants.sort(
+        (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+      );
+      return plants;
+    });
+  }
+
+  Stream<List<Plant>> getPlantsByUser(String userId) {
+    return _db
+        .collection('plants')
+        .where('userId', isEqualTo: userId)
+        .snapshots()
+        .map((snap) {
       final plants =
           snap.docs.map((doc) => Plant.fromMap(doc.id, doc.data())).toList();
       plants.sort(
@@ -24,6 +41,18 @@ class PlantService {
     return plants;
   }
 
+  Future<List<Plant>> getAllPlantsByUser(String userId) async {
+    final snap = await _db
+        .collection('plants')
+        .where('userId', isEqualTo: userId)
+        .get();
+
+    final plants =
+        snap.docs.map((doc) => Plant.fromMap(doc.id, doc.data())).toList();
+    plants.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return plants;
+  }
+
   Future<Plant> fetchPlantById(String id) async {
     final doc = await _db.collection('plants').doc(id).get();
     if (!doc.exists) {
@@ -33,7 +62,17 @@ class PlantService {
   }
 
   Future<void> createPlant(Plant plant) async {
-    await _db.collection('plants').add(plant.toMap());
+    try {
+      final uid = plant.userId ?? currentUser?.id;
+      final data = plant.userId == null ? plant.copyWith(userId: uid) : plant;
+      if (data.userId == null || data.userId!.isEmpty) {
+        throw Exception('Usuário não autenticado para salvar a planta');
+      }
+      await _db.collection('plants').add(data.toMap());
+    } catch (e, st) {
+      developer.log('Erro ao criar planta: $e', name: 'PlantService', stackTrace: st);
+      rethrow;
+    }
   }
 
   Future<void> updatePlant(Plant plant) async {
@@ -44,3 +83,4 @@ class PlantService {
     await _db.collection('plants').doc(id).delete();
   }
 }
+

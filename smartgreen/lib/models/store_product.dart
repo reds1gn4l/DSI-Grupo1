@@ -88,37 +88,13 @@ class StoreProduct {
           data['fx_umidade'] ??
           '',
       temperaturaMax:
-          (data['temperaturaMax'] ??
-                      data['temperatura_max']) !=
-                  null
-              ? (data['temperaturaMax'] ??
-                      data['temperatura_max'])
-                  .toDouble()
-              : null,
+          (data['temperaturaMax'] ?? data['temperatura_max'])?.toDouble(),
       temperaturaMin:
-          (data['temperaturaMin'] ??
-                      data['temperatura_min']) !=
-                  null
-              ? (data['temperaturaMin'] ??
-                      data['temperatura_min'])
-                  .toDouble()
-              : null,
+          (data['temperaturaMin'] ?? data['temperatura_min'])?.toDouble(),
       umidadeMax:
-          (data['umidadeMax'] ??
-                      data['umidade_max']) !=
-                  null
-              ? (data['umidadeMax'] ??
-                      data['umidade_max'])
-                  .toDouble()
-              : null,
+          (data['umidadeMax'] ?? data['umidade_max'])?.toDouble(),
       umidadeMinima:
-          (data['umidadeMinima'] ??
-                      data['umidade_minima']) !=
-                  null
-              ? (data['umidadeMinima'] ??
-                      data['umidade_minima'])
-                  .toDouble()
-              : null,
+          (data['umidadeMinima'] ?? data['umidade_minima'])?.toDouble(),
       precoUnt: StoreProduct._parsePrecoUnt(
         data['PrecoUnt'] ??
             data['precoUnt'] ??
@@ -302,14 +278,13 @@ class StoreProduct {
   static double _parsePrecoUnt(
     dynamic value,
   ) {
-    if (value ==
-        null)
+    if (value == null) {
       return 0.0;
-    if (value
-        is num)
+    }
+    if (value is num) {
       return value.toDouble();
-    if (value
-        is String)
+    }
+    if (value is String) {
       return double.tryParse(
             value.replaceAll(
               ',',
@@ -317,6 +292,7 @@ class StoreProduct {
             ),
           ) ??
           0.0;
+    }
     return 0.0;
   }
 }

@@ -105,8 +105,9 @@ class _ForgotPasswordPageState
     );
     if (!rx.hasMatch(
       v,
-    ))
+    )) {
       return 'Digite um e-mail válido';
+    }
     return null;
   }
 
@@ -118,8 +119,9 @@ class _ForgotPasswordPageState
         '';
     if (v.isEmpty) return 'Digite a nova senha';
     if (v.length <
-        6)
+        6) {
       return 'A senha deve ter pelo menos 6 caracteres';
+    }
     return null;
   }
 
@@ -131,8 +133,9 @@ class _ForgotPasswordPageState
         '';
     if (v.isEmpty) return 'Confirme a nova senha';
     if (v !=
-        _newPasswordController.text)
+        _newPasswordController.text) {
       return 'As senhas não coincidem';
+    }
     return null;
   }
 
@@ -215,12 +218,13 @@ class _ForgotPasswordPageState
         ),
       );
     } finally {
-      if (mounted)
+      if (mounted) {
         setState(
           () =>
               _loading =
                   false,
         );
+      }
     }
   }
 
@@ -233,8 +237,9 @@ class _ForgotPasswordPageState
     ).unfocus();
 
     if (_userId ==
-        null)
+        null) {
       return;
+    }
     if (!_formKey.currentState!.validate()) return;
 
     // Verifica se as senhas coincidem
@@ -314,12 +319,13 @@ class _ForgotPasswordPageState
         ),
       );
     } finally {
-      if (mounted)
+      if (mounted) {
         setState(
           () =>
               _loading =
                   false,
         );
+      }
     }
   }
 

@@ -35,7 +35,7 @@ class Supply {
           }
         } catch (_) {}
       }
-    } else if (rawCreatedAt is dynamic && rawCreatedAt != null) {
+    } else if (rawCreatedAt != null) {
       try {
         parsedCreatedAt = (rawCreatedAt as dynamic).toDate() as DateTime;
       } catch (_) {}

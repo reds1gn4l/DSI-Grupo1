@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class Plant {
+class Plant { 
   final String id;
   final String name;
   final int? temperaturaMin;
@@ -16,7 +16,7 @@ class Plant {
   final String? imageURL; // Suporta chaves 'imageURL' e 'imageUrl'
   final String? userId; // Já existente e mantido
 
-  Plant({
+  Plant({ 
     required this.id,
     required this.name,
     this.temperaturaMin,
@@ -31,7 +31,41 @@ class Plant {
     this.horasLuz,
     this.imageURL, // Adicionado
     this.userId, // Mantido
-  });
+  }); 
+
+  Plant copyWith({
+    String? id,
+    String? name,
+    int? temperaturaMin,
+    int? temperaturaMax,
+    int? umidadeMin,
+    int? umidadeMax,
+    DateTime? dataPlantio,
+    String? exposicaoSolar,
+    String? status,
+    double? mediaTemperatura,
+    double? mediaUmidade,
+    double? horasLuz,
+    String? imageURL,
+    String? userId,
+  }) {
+    return Plant(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      temperaturaMin: temperaturaMin ?? this.temperaturaMin,
+      temperaturaMax: temperaturaMax ?? this.temperaturaMax,
+      umidadeMin: umidadeMin ?? this.umidadeMin,
+      umidadeMax: umidadeMax ?? this.umidadeMax,
+      dataPlantio: dataPlantio ?? this.dataPlantio,
+      exposicaoSolar: exposicaoSolar ?? this.exposicaoSolar,
+      status: status ?? this.status,
+      mediaTemperatura: mediaTemperatura ?? this.mediaTemperatura,
+      mediaUmidade: mediaUmidade ?? this.mediaUmidade,
+      horasLuz: horasLuz ?? this.horasLuz,
+      imageURL: imageURL ?? this.imageURL,
+      userId: userId ?? this.userId,
+    );
+  }
 
   factory Plant.fromMap(String id, Map<String, dynamic> data) {
     return Plant(

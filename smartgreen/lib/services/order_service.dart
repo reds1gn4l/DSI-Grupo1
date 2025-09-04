@@ -1,4 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart' as fs;
+import 'dart:developer' as developer;
+import 'package:cloud_firestore/cloud_firestore.dart' as fs; 
 import 'package:intl/intl.dart';
 
 import '../models/order.dart' as model;
@@ -71,13 +72,18 @@ class OrderService {
       }
     }
 
-    try {
-      await _addSuppliesFromOrder(
-        order,
+    try { 
+      await _addSuppliesFromOrder( 
+        order, 
+      ); 
+    } catch ( 
+      e 
+    ) { 
+      developer.log(
+        'Erro ao adicionar insumos do pedido: $e',
+        name: 'OrderService',
       );
-    } catch (
-      e
-    ) {}
+    } 
 
     return doc.id;
   }
