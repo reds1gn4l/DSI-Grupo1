@@ -45,5 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+    <key>NSCameraUsageDescription</key>
+    <string>Precisamos acessar a câmera para tirar fotos das suas plantas.</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>Permitir salvar a foto da planta no dispositivo.</string>
 </dict>
 </plist>

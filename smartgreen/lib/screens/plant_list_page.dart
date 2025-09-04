@@ -103,13 +103,14 @@ class PlantListPageState extends State<PlantListPage> {
                     );
                     setState(() {});
                   },
-                  onOpen: () {
-                    Navigator.of(context).push(
+                  onOpen: () async {
+                    await Navigator.of(context).push(
                       MaterialPageRoute(
                         builder:
                             (_) => PlantDetailPage(plantId: filtered[index].id),
                       ),
                     );
+                    if (mounted) setState(() {});
                   },
                 ),
           );
