@@ -116,7 +116,7 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
     );
   }
 
-  Widget _buildSliderRow({
+  Widget _buildSliderRow({ 
     required String title,
     required double value,
     required double min,
@@ -125,11 +125,12 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
     required String unit,
     required IconData icon,
     required Color iconColor,
-  }) {
-    final clamped = value.clamp(min, max);
-    final t = (clamped - min) / (max - min == 0 ? 1 : (max - min));
-    const trackHeight = 12.0;
-    const iconSize = 20.0;
+  }) { 
+    final clamped = value.clamp(min, max); 
+    final t = (clamped - min) / (max - min == 0 ? 1 : (max - min)); 
+    const trackHeight = 12.0; 
+    const markerSize = 24.0; 
+    const innerIconSize = 16.0; 
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,14 +139,14 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
         const SizedBox(height: 6),
         LayoutBuilder(
           builder: (context, constraints) {
-            final w = constraints.maxWidth;
-            final left = (w - iconSize) * t;
-            final top = (24 - iconSize) / 2;
-            return SizedBox(
-              height: 24,
-              child: Stack(
-                children: [
-                  Positioned.fill(
+            final w = constraints.maxWidth; 
+            final left = (w - markerSize) * t; 
+            final top = (24 - markerSize) / 2; 
+            return SizedBox( 
+              height: 24, 
+              child: Stack( 
+                children: [ 
+                  Positioned.fill( 
                     top: (24 - trackHeight) / 2,
                     bottom: (24 - trackHeight) / 2,
                     child: Container(
@@ -155,16 +156,31 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
                       ),
                     ),
                   ),
-                  Positioned(
-                    left: left,
-                    top: top,
-                    child: Icon(icon, size: iconSize, color: iconColor),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
+                  Positioned( 
+                    left: left, 
+                    top: top, 
+                    child: Builder(
+                      builder: (context) {
+                        final cs = Theme.of(context).colorScheme;
+                        return Container(
+                          width: markerSize,
+                          height: markerSize,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                            border: Border.all(color: cs.primary, width: 2),
+                          ),
+                          alignment: Alignment.center,
+                          child: Icon(icon, size: innerIconSize, color: iconColor),
+                        );
+                      },
+                    ),
+                  ), 
+                ], 
+              ), 
+            ); 
+          }, 
+        ), 
         const SizedBox(height: 18),
       ],
     );

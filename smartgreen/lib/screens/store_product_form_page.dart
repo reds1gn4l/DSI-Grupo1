@@ -74,17 +74,21 @@ class _ProductFormPageState
       _descPlantaCtrl.text = p.descricaoPlanta;
       // Tenta extrair os valores máximos e mínimos dos campos existentes
       if (p.temperaturaMax !=
-          null)
+          null) {
         _tempMaxCtrl.text = p.temperaturaMax.toString();
+      }
       if (p.temperaturaMin !=
-          null)
+          null) {
         _tempMinCtrl.text = p.temperaturaMin.toString();
+      }
       if (p.umidadeMax !=
-          null)
+          null) {
         _umidadeMaxCtrl.text = p.umidadeMax.toString();
+      }
       if (p.umidadeMinima !=
-          null)
+          null) {
         _umidadeMinCtrl.text = p.umidadeMinima.toString();
+      }
       _tempoSolValue =
           p.tempoSol;
       _valDiasCtrl.text =
@@ -317,12 +321,13 @@ class _ProductFormPageState
         ),
       );
     } finally {
-      if (mounted)
+      if (mounted) {
         setState(
           () =>
               _saving =
                   false,
         );
+      }
     }
   }
 
@@ -756,8 +761,9 @@ class _ProductFormPageState
                             if (n ==
                                     null ||
                                 n <
-                                    0)
+                                    0) {
                               return 'Estoque inválido';
+                            }
                             return null;
                           },
                         ),

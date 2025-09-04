@@ -36,4 +36,42 @@ class StoreProductService {
   }
 
   Future<void> delete(String id) => _col.doc(id).delete();
+
+  Future<List<StoreProduct>> searchByCategoryAndQuery({
+    required String category,
+    required String query,
+    int limit = 8,
+  }) async {
+    final term = query.trim();
+    if (term.length < 3) return <StoreProduct>[];
+
+    // Firestore prefix search usando orderBy + startAt/endAt em 'CientificName'.
+    // Observação: a comparação é case-sensitive conforme armazenado.
+    try {
+      // Busca e ordenação apenas pelo nome da planta ('Nome').
+      final q = _col
+          .where('category', isEqualTo: category)
+          .orderBy('Nome')
+          .startAt([term])
+          .endAt(["$term\uf8ff"]).limit(limit);
+      final snap = await q.get();
+      return snap.docs
+          .map((d) => StoreProduct.fromMap(d.id, d.data()))
+          .toList();
+    } on FirebaseException catch (e) {
+      if (e.code == 'failed-precondition') {
+        // Fallback sem índice composto: busca por categoria e filtra no cliente somente por Nome
+        final snap = await _col.where('category', isEqualTo: category).get();
+        final termLower = term.toLowerCase();
+        final filtered = snap.docs
+            .map((d) => StoreProduct.fromMap(d.id, d.data()))
+            .where((p) => p.nome.toLowerCase().startsWith(termLower) ||
+                p.nome.toLowerCase().contains(termLower))
+            .toList();
+        filtered.sort((a, b) => a.nome.compareTo(b.nome));
+        return filtered.length > limit ? filtered.sublist(0, limit) : filtered;
+      }
+      rethrow;
+    }
+  }
 }

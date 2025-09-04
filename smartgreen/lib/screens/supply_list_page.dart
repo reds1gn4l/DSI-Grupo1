@@ -226,10 +226,11 @@ class SupplyListPageState
                                 ),
                           ) ??
                           false;
-                      if (ok)
+                      if (ok) {
                         await _service.deleteSupply(
                           supply.id,
                         );
+                      }
                       return false;
                     },
                     background: Container(

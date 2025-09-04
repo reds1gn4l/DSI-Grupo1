@@ -365,8 +365,9 @@ class _SpecRow
         ).textTheme;
     if (value ==
             null ||
-        value!.trim().isEmpty)
+        value!.trim().isEmpty) {
       return const SizedBox.shrink();
+    }
     return Padding(
       padding: const EdgeInsets.only(
         bottom:

@@ -136,10 +136,11 @@ class _ProductListPageState
               ),
         ) ??
         false;
-    if (ok)
+    if (ok) {
       await _service.delete(
         p.id,
       );
+    }
   }
 
   AppBar _topBar(
@@ -288,8 +289,9 @@ class _ProductListPageState
                 v,
               ) {
                 if (v ==
-                    'logout')
+                    'logout') {
                   _logout();
+                }
               },
               itemBuilder:
                   (
