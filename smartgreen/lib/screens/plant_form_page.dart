@@ -48,35 +48,76 @@ class _PlantFormPageState
       TextEditingController();
   String? _tempMaxError;
   String? _umidMaxError;
-  final FocusNode _nameFocus = FocusNode();
-  final StoreProductService _storeService = StoreProductService();
-  List<StoreProduct> _suggestions = <StoreProduct>[];
-  bool _loadingSuggestions = false;
+  final FocusNode _nameFocus =
+      FocusNode();
+  final StoreProductService _storeService =
+      StoreProductService();
+  List<
+    StoreProduct
+  >
+  _suggestions =
+      <
+        StoreProduct
+      >[];
+  bool _loadingSuggestions =
+      false;
   Timer? _debounce;
-  static const List<String> _lightOptions = <String>[
+  static const List<
+    String
+  >
+  _lightOptions = <
+    String
+  >[
     'Sol Pleno',
     'Meia Sombra',
     'Sombra',
   ];
   String? _selectedLight;
-  String? _normalizeLight(String? v) {
-    if (v == null) return null;
+  String? _normalizeLight(
+    String? v,
+  ) {
+    if (v ==
+        null)
+      return null;
     final s = v.trim().toLowerCase();
-    if (s == 'sol pleno' || s == 'sol_pleno') return 'Sol Pleno';
-    if (s == 'meia sombra' || s == 'meia_sombra') return 'Meia Sombra';
-    if (s == 'sombra') return 'Sombra';
-    return _lightOptions.contains(v) ? v : null;
+    if (s ==
+            'sol pleno' ||
+        s ==
+            'sol_pleno')
+      return 'Sol Pleno';
+    if (s ==
+            'meia sombra' ||
+        s ==
+            'meia_sombra')
+      return 'Meia Sombra';
+    if (s ==
+        'sombra')
+      return 'Sombra';
+    return _lightOptions.contains(
+          v,
+        )
+        ? v
+        : null;
   }
+
   DateTime? _selectedDate;
 
-  @override 
-  void initState() { 
+  @override
+  void initState() {
     super.initState();
-    _nameFocus.addListener(() {
-      if (!_nameFocus.hasFocus) {
-        setState(() => _suggestions = <StoreProduct>[]);
-      }
-    });
+    _nameFocus.addListener(
+      () {
+        if (!_nameFocus.hasFocus) {
+          setState(
+            () =>
+                _suggestions =
+                    <
+                      StoreProduct
+                    >[],
+          );
+        }
+      },
+    );
     final p = widget.existingPlant;
     if (p !=
         null) {
@@ -93,42 +134,87 @@ class _PlantFormPageState
       _umidMaxController.text =
           p.umidadeMax?.toString() ??
           '';
-      _selectedLight = _normalizeLight(p.exposicaoSolar) ?? _lightOptions.first; 
+      _selectedLight =
+          _normalizeLight(
+            p.exposicaoSolar,
+          ) ??
+          _lightOptions.first;
       _selectedDate =
           p.dataPlantio ??
           DateTime.now();
     } else {
       _selectedDate =
           DateTime.now();
-      _selectedLight = _lightOptions.first;
+      _selectedLight =
+          _lightOptions.first;
     }
     // Validação cruzada inline: define listeners e revalidações
     void revalidateTemp() {
-      final tmin = int.tryParse(_tempMinController.text.trim());
-      final tmax = int.tryParse(_tempMaxController.text.trim());
-      final err = (tmin != null && tmax != null && tmax <= tmin)
-          ? 'Temperatura Máx deve ser maior que a Mín'
-          : null;
-      if (_tempMaxError != err) {
-        setState(() => _tempMaxError = err);
+      final tmin = int.tryParse(
+        _tempMinController.text.trim(),
+      );
+      final tmax = int.tryParse(
+        _tempMaxController.text.trim(),
+      );
+      final err =
+          (tmin !=
+                      null &&
+                  tmax !=
+                      null &&
+                  tmax <=
+                      tmin)
+              ? 'Temperatura Máx deve ser maior que a Mín'
+              : null;
+      if (_tempMaxError !=
+          err) {
+        setState(
+          () =>
+              _tempMaxError =
+                  err,
+        );
       }
     }
+
     void revalidateUmid() {
-      final umin = int.tryParse(_umidMinController.text.trim());
-      final umax = int.tryParse(_umidMaxController.text.trim());
-      final err = (umin != null && umax != null && umax <= umin)
-          ? 'Umidade Máx deve ser maior que a Mín'
-          : null;
-      if (_umidMaxError != err) {
-        setState(() => _umidMaxError = err);
+      final umin = int.tryParse(
+        _umidMinController.text.trim(),
+      );
+      final umax = int.tryParse(
+        _umidMaxController.text.trim(),
+      );
+      final err =
+          (umin !=
+                      null &&
+                  umax !=
+                      null &&
+                  umax <=
+                      umin)
+              ? 'Umidade Máx deve ser maior que a Mín'
+              : null;
+      if (_umidMaxError !=
+          err) {
+        setState(
+          () =>
+              _umidMaxError =
+                  err,
+        );
       }
     }
-    _tempMinController.addListener(revalidateTemp);
-    _tempMaxController.addListener(revalidateTemp);
-    _umidMinController.addListener(revalidateUmid);
-    _umidMaxController.addListener(revalidateUmid);
-  }  
- 
+
+    _tempMinController.addListener(
+      revalidateTemp,
+    );
+    _tempMaxController.addListener(
+      revalidateTemp,
+    );
+    _umidMinController.addListener(
+      revalidateUmid,
+    );
+    _umidMaxController.addListener(
+      revalidateUmid,
+    );
+  }
+
   @override
   void dispose() {
     _debounce?.cancel();
@@ -156,45 +242,76 @@ class _PlantFormPageState
         padding: const EdgeInsets.all(
           16,
         ),
-        child: Form( 
-          key: 
-              _formKey, 
-          autovalidateMode: AutovalidateMode.onUserInteraction,
+        child: Form(
+          key:
+              _formKey,
+          autovalidateMode:
+              AutovalidateMode.onUserInteraction,
           child: Column(
             children: [
               TextFormField(
                 controller:
                     _nameController,
-                focusNode: _nameFocus,
+                focusNode:
+                    _nameFocus,
                 decoration: const InputDecoration(
                   labelText:
                       'Nome da Planta',
                 ),
-                onChanged: (value) {
+                onChanged: (
+                  value,
+                ) {
                   _debounce?.cancel();
-                  if (value.trim().length < 3) {
-                    setState(() => _suggestions = <StoreProduct>[]);
+                  if (value.trim().length <
+                      3) {
+                    setState(
+                      () =>
+                          _suggestions =
+                              <
+                                StoreProduct
+                              >[],
+                    );
                     return;
                   }
-                  _debounce = Timer(const Duration(milliseconds: 300), () async {
-                    setState(() => _loadingSuggestions = true);
-                    try {
-                      final results = await _storeService.searchByCategoryAndQuery(
-                        category: 'Planta/Semente',
-                        query: value,
-                        limit: 8,
+                  _debounce = Timer(
+                    const Duration(
+                      milliseconds:
+                          300,
+                    ),
+                    () async {
+                      setState(
+                        () =>
+                            _loadingSuggestions =
+                                true,
                       );
-                      if (mounted) {
-                        setState(() {
-                          _suggestions = results;
-                        });
+                      try {
+                        final results = await _storeService.searchByCategoryAndQuery(
+                          category:
+                              'Planta/Semente',
+                          query:
+                              value,
+                          limit:
+                              8,
+                        );
+                        if (mounted) {
+                          setState(
+                            () {
+                              _suggestions =
+                                  results;
+                            },
+                          );
+                        }
+                      } finally {
+                        if (mounted) {
+                          setState(
+                            () =>
+                                _loadingSuggestions =
+                                    false,
+                          );
+                        }
                       }
-                    } finally {
-                      if (mounted) {
-                        setState(() => _loadingSuggestions = false);
-                      }
-                    }
-                  });
+                    },
+                  );
                 },
                 validator: (
                   value,
@@ -222,44 +339,86 @@ class _PlantFormPageState
               // Sugestões de produtos (autocomplete)
               if (_loadingSuggestions)
                 const Padding(
-                  padding: EdgeInsets.only(bottom: 8),
-                  child: LinearProgressIndicator(minHeight: 2),
+                  padding: EdgeInsets.only(
+                    bottom:
+                        8,
+                  ),
+                  child: LinearProgressIndicator(
+                    minHeight:
+                        2,
+                  ),
                 ),
               if (_suggestions.isNotEmpty)
                 Card(
-                  elevation: 2,
-                  margin: const EdgeInsets.only(bottom: 12),
+                  elevation:
+                      2,
+                  margin: const EdgeInsets.only(
+                    bottom:
+                        12,
+                  ),
                   child: ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _suggestions.length,
-                    itemBuilder: (context, index) {
+                    shrinkWrap:
+                        true,
+                    physics:
+                        const NeverScrollableScrollPhysics(),
+                    itemCount:
+                        _suggestions.length,
+                    itemBuilder: (
+                      context,
+                      index,
+                    ) {
                       final s = _suggestions[index];
                       return ListTile(
-                        leading: s.imageURL.isNotEmpty
-                            ? CircleAvatar(backgroundImage: NetworkImage(s.imageURL))
-                            : const CircleAvatar(child: Icon(Icons.local_florist)),
-                        title: Text(s.nome),
-                        subtitle: Text(s.cientificName),
+                        leading:
+                            s.imageURL.isNotEmpty
+                                ? CircleAvatar(
+                                  backgroundImage: NetworkImage(
+                                    s.imageURL,
+                                  ),
+                                )
+                                : const CircleAvatar(
+                                  child: Icon(
+                                    Icons.local_florist,
+                                  ),
+                                ),
+                        title: Text(
+                          s.nome,
+                        ),
+                        subtitle: Text(
+                          s.cientificName,
+                        ),
                         onTap: () {
                           // Preenche os demais campos
                           _nameController.text = s.nome;
-                          if (s.temperaturaMin != null) {
+                          if (s.temperaturaMin !=
+                              null) {
                             _tempMinController.text = s.temperaturaMin!.round().toString();
                           }
-                          if (s.temperaturaMax != null) {
+                          if (s.temperaturaMax !=
+                              null) {
                             _tempMaxController.text = s.temperaturaMax!.round().toString();
                           }
-                          if (s.umidadeMinima != null) {
+                          if (s.umidadeMinima !=
+                              null) {
                             _umidMinController.text = s.umidadeMinima!.round().toString();
                           }
-                          if (s.umidadeMax != null) {
+                          if (s.umidadeMax !=
+                              null) {
                             _umidMaxController.text = s.umidadeMax!.round().toString();
                           }
-                          _selectedLight = _normalizeLight(s.tempoSol) ?? _selectedLight;
-                          setState(() {
-                            _suggestions = <StoreProduct>[];
-                          });
+                          _selectedLight =
+                              _normalizeLight(
+                                s.tempoSol,
+                              ) ??
+                              _selectedLight;
+                          setState(
+                            () {
+                              _suggestions =
+                                  <
+                                    StoreProduct
+                                  >[];
+                            },
+                          );
                         },
                       );
                     },
@@ -333,26 +492,37 @@ class _PlantFormPageState
                       },
                     ),
                   ),
-                ], 
-              ), 
-              if (_tempMaxError != null)
+                ],
+              ),
+              if (_tempMaxError !=
+                  null)
                 Padding(
-                  padding: const EdgeInsets.only(top: 4, bottom: 4),
+                  padding: const EdgeInsets.only(
+                    top:
+                        4,
+                    bottom:
+                        4,
+                  ),
                   child: Align(
-                    alignment: Alignment.centerRight,
+                    alignment:
+                        Alignment.centerRight,
                     child: Text(
                       _tempMaxError!,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                        fontSize: 12,
+                        color:
+                            Theme.of(
+                              context,
+                            ).colorScheme.error,
+                        fontSize:
+                            12,
                       ),
                     ),
                   ),
                 ),
-              const SizedBox( 
-                height: 
-                    12, 
-              ), 
+              const SizedBox(
+                height:
+                    12,
+              ),
               Row(
                 children: [
                   Expanded(
@@ -421,26 +591,37 @@ class _PlantFormPageState
                       },
                     ),
                   ),
-                ], 
-              ), 
-              if (_umidMaxError != null)
+                ],
+              ),
+              if (_umidMaxError !=
+                  null)
                 Padding(
-                  padding: const EdgeInsets.only(top: 4, bottom: 4),
+                  padding: const EdgeInsets.only(
+                    top:
+                        4,
+                    bottom:
+                        4,
+                  ),
                   child: Align(
-                    alignment: Alignment.centerRight,
+                    alignment:
+                        Alignment.centerRight,
                     child: Text(
                       _umidMaxError!,
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                        fontSize: 12,
+                        color:
+                            Theme.of(
+                              context,
+                            ).colorScheme.error,
+                        fontSize:
+                            12,
                       ),
                     ),
                   ),
                 ),
-              const SizedBox( 
-                height: 
-                    12, 
-              ), 
+              const SizedBox(
+                height:
+                    12,
+              ),
               DropdownButtonFormField<
                 String
               >(
@@ -450,19 +631,20 @@ class _PlantFormPageState
                   labelText:
                       'Exposição Solar',
                 ),
-                items: _lightOptions
-                        .map( 
-                          ( 
-                            e, 
-                          ) => DropdownMenuItem( 
-                            value: 
-                                e, 
-                            child: Text( 
-                              e, 
-                            ), 
-                          ), 
-                        ) 
-                        .toList(), 
+                items:
+                    _lightOptions
+                        .map(
+                          (
+                            e,
+                          ) => DropdownMenuItem(
+                            value:
+                                e,
+                            child: Text(
+                              e,
+                            ),
+                          ),
+                        )
+                        .toList(),
                 onChanged:
                     (
                       v,
@@ -524,34 +706,75 @@ class _PlantFormPageState
                 label: const Text(
                   'Salvar',
                 ),
-                onPressed: () async { 
-                  if (_formKey.currentState!.validate()) { 
-                    final user = currentUser; 
-                    if (user == null || (user.id == null || user.id!.isEmpty)) {
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    final user =
+                        currentUser;
+                    if (user ==
+                            null ||
+                        (user.id ==
+                                null ||
+                            user.id!.isEmpty)) {
                       if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Faça login para salvar a planta.')),
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Faça login para salvar a planta.',
+                          ),
+                        ),
                       );
-                      return; 
-                    } 
+                      return;
+                    }
                     // Cross-field validation: Máx deve ser maior que Mín
-                    final tmin = int.tryParse(_tempMinController.text.trim());
-                    final tmax = int.tryParse(_tempMaxController.text.trim());
-                    if (tmin != null && tmax != null && tmax <= tmin) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Temperatura Máx deve ser maior que a Mín')),
+                    final tmin = int.tryParse(
+                      _tempMinController.text.trim(),
+                    );
+                    final tmax = int.tryParse(
+                      _tempMaxController.text.trim(),
+                    );
+                    if (tmin !=
+                            null &&
+                        tmax !=
+                            null &&
+                        tmax <=
+                            tmin) {
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Temperatura Máx deve ser maior que a Mín',
+                          ),
+                        ),
                       );
                       return;
                     }
-                    final umin = int.tryParse(_umidMinController.text.trim());
-                    final umax = int.tryParse(_umidMaxController.text.trim());
-                    if (umin != null && umax != null && umax <= umin) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Umidade Máx deve ser maior que a Mín')),
+                    final umin = int.tryParse(
+                      _umidMinController.text.trim(),
+                    );
+                    final umax = int.tryParse(
+                      _umidMaxController.text.trim(),
+                    );
+                    if (umin !=
+                            null &&
+                        umax !=
+                            null &&
+                        umax <=
+                            umin) {
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Umidade Máx deve ser maior que a Mín',
+                          ),
+                        ),
                       );
                       return;
                     }
-                    final plant = Plant(  
+                    final plant = Plant(
                       id:
                           widget.existingPlant?.id ??
                           '',
@@ -575,18 +798,19 @@ class _PlantFormPageState
                           _selectedDate,
                       status:
                           'verde',
-                      userId: user.id, 
-                    ); 
+                      userId:
+                          user.id,
+                    );
 
-                    if (isEditing) { 
-                      await _service.updatePlant( 
-                        plant, 
-                      ); 
-                    } else { 
-                      await _service.createPlant( 
-                        plant, 
-                      ); 
-                    } 
+                    if (isEditing) {
+                      await _service.updatePlant(
+                        plant,
+                      );
+                    } else {
+                      await _service.createPlant(
+                        plant,
+                      );
+                    }
 
                     if (context.mounted) {
                       Navigator.of(

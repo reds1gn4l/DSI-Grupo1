@@ -7,58 +7,121 @@ import '../models/cart_item.dart';
 import 'address_selection_page.dart';
 import 'payment_page.dart';
 import '../widgets/custom_button.dart';
+import '../widgets/plant_card_widget.dart';
+import '../widgets/leaf_glyph.dart';
 
 /// Tela completa (quando abrimos o carrinho em uma rota própria)
-class CartPage extends StatelessWidget {
-  const CartPage({super.key});
+class CartPage
+    extends
+        StatelessWidget {
+  const CartPage({
+    super.key,
+  });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Carrinho de Compras')),
-      body: const CartContent(),
+      appBar: AppBar(
+        title: const Text(
+          'Carrinho de Compras',
+        ),
+      ),
+      body:
+          const CartContent(),
     );
   }
 }
 
 /// Conteúdo do carrinho (sem AppBar/Scaffold) para uso na Home
-class CartContent extends StatelessWidget {
-  const CartContent({super.key});
+class CartContent
+    extends
+        StatelessWidget {
+  const CartContent({
+    super.key,
+  });
 
   /// Usa espaço não-quebrável entre "R$" e o valor para evitar quebra de linha.
-  String _money(num v) =>
-      'R\$ ${v.toStringAsFixed(2)}'.replaceFirst(' ', '\u00A0');
+  String
+  _money(
+    num v,
+  ) => 'R\$ ${v.toStringAsFixed(2)}'.replaceFirst(
+    ' ',
+    '\u00A0',
+  );
 
-  Future<bool> _confirmRemoveItem(BuildContext context, String name) async {
-    final result = await showDialog<bool>(
-      context: context,
+  Future<
+    bool
+  >
+  _confirmRemoveItem(
+    BuildContext context,
+    String name,
+  ) async {
+    final result = await showDialog<
+      bool
+    >(
+      context:
+          context,
       builder:
-          (_) => AlertDialog(
-            title: const Text('Remover item'),
-            content: Text('Deseja remover "$name" do carrinho?'),
+          (
+            _,
+          ) => AlertDialog(
+            title: const Text(
+              'Remover item',
+            ),
+            content: Text(
+              'Deseja remover "$name" do carrinho?',
+            ),
             actions: [
               TextButton(
-                child: const Text('Cancelar'),
-                onPressed: () => Navigator.pop(context, false),
+                child: const Text(
+                  'Cancelar',
+                ),
+                onPressed:
+                    () => Navigator.pop(
+                      context,
+                      false,
+                    ),
               ),
               TextButton(
-                child: const Text('Remover'),
-                onPressed: () => Navigator.pop(context, true),
+                child: const Text(
+                  'Remover',
+                ),
+                onPressed:
+                    () => Navigator.pop(
+                      context,
+                      true,
+                    ),
               ),
             ],
           ),
     );
-    return result ?? false;
+    return result ??
+        false;
   }
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final cart = context.watch<CartService>();
+  Widget build(
+    BuildContext context,
+  ) {
+    final theme = Theme.of(
+      context,
+    );
+    final cs =
+        theme.colorScheme;
+    final cart =
+        context
+            .watch<
+              CartService
+            >();
 
     if (cart.items.isEmpty) {
-      return const Center(child: Text('Seu carrinho está vazio'));
+      return const Center(
+        child: Text(
+          'Seu carrinho está vazio',
+        ),
+      );
     }
 
     return Column(
@@ -66,64 +129,120 @@ class CartContent extends StatelessWidget {
         // Lista de itens
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.only(bottom: 8),
-            itemCount: cart.items.length,
-            itemBuilder: (context, index) {
-              final CartItem item = cart.items[index];
-              final price = item.product.precoUnt;
-              final quantity = item.quantity;
-              final subtotal = price * quantity;
+            padding: const EdgeInsets.only(
+              bottom:
+                  8,
+            ),
+            itemCount:
+                cart.items.length,
+            itemBuilder: (
+              context,
+              index,
+            ) {
+              final CartItem item =
+                  cart.items[index];
+              final price =
+                  item.product.precoUnt;
+              final quantity =
+                  item.quantity;
+              final subtotal =
+                  price *
+                  quantity;
 
               return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                elevation: theme.cardTheme.elevation ?? 3,
+                margin: const EdgeInsets.symmetric(
+                  horizontal:
+                      16,
+                  vertical:
+                      8,
+                ),
+                elevation:
+                    theme.cardTheme.elevation ??
+                    3,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(
+                    12,
+                  ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(
+                    12,
+                  ),
                   child: Row(
                     children: [
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          item.product.imageURL,
-                          width: 70,
-                          height: 70,
-                          fit: BoxFit.cover,
+                        borderRadius: BorderRadius.circular(
+                          8,
                         ),
+                        child:
+                            (item.product.imageURL.isNotEmpty)
+                                ? Image.network(
+                                  item.product.imageURL,
+                                  width:
+                                      70,
+                                  height:
+                                      70,
+                                  fit:
+                                      BoxFit.cover,
+                                  errorBuilder:
+                                      (
+                                        _,
+                                        __,
+                                        ___,
+                                      ) =>
+                                          _cartImagePlaceholder(),
+                                )
+                                : _cartImagePlaceholder(),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(
+                        width:
+                            12,
+                      ),
                       // Descrição
                       Expanded(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment:
+                              CrossAxisAlignment.start,
                           children: [
                             Text(
-                              item.product.cientificName,
+                              item.product.nome,
                               style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
+                                fontWeight:
+                                    FontWeight.w700,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(
+                              height:
+                                  4,
+                            ),
                             Text(
-                              _money(price),
+                              _money(
+                                price,
+                              ),
                               style: theme.textTheme.bodyMedium?.copyWith(
-                                color: cs.primary,
-                                fontWeight: FontWeight.w600,
+                                color:
+                                    cs.primary,
+                                fontWeight:
+                                    FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(
+                              height:
+                                  4,
+                            ),
                             Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   'Subtotal:',
-                                  style: theme.textTheme.bodySmall,
+                                  style:
+                                      theme.textTheme.bodySmall,
                                 ),
                                 Text(
                                   '${_money(price)} × $quantity = ${_money(subtotal)}',
-                                  style: theme.textTheme.bodySmall,
+                                  style:
+                                      theme.textTheme.bodySmall,
                                 ),
                               ],
                             ),
@@ -133,29 +252,49 @@ class CartContent extends StatelessWidget {
 
                       // Stepper com área de toque ampliada
                       Row(
-                        mainAxisSize: MainAxisSize.min,
+                        mainAxisSize:
+                            MainAxisSize.min,
                         children: [
                           _StepButton(
-                            tooltip: 'Diminuir',
-                            icon: Icons.remove,
+                            tooltip:
+                                'Diminuir',
+                            icon:
+                                Icons.remove,
                             onPressed: () async {
-                              if (quantity <= 1) {
+                              if (quantity <=
+                                  1) {
                                 final ok = await _confirmRemoveItem(
                                   context,
-                                  item.product.cientificName,
+                                  item.product.nome,
                                 );
-                                if (ok) cart.removeFromCart(item.product);
+                                if (ok)
+                                  cart.removeFromCart(
+                                    item.product,
+                                  );
                               } else {
-                                cart.updateQuantity(item.product, quantity - 1);
+                                cart.updateQuantity(
+                                  item.product,
+                                  quantity -
+                                      1,
+                                );
                               }
                             },
                           ),
-                          _QtyBadge(value: quantity),
+                          _QtyBadge(
+                            value:
+                                quantity,
+                          ),
                           _StepButton(
-                            tooltip: 'Aumentar',
-                            icon: Icons.add,
+                            tooltip:
+                                'Aumentar',
+                            icon:
+                                Icons.add,
                             onPressed: () {
-                              cart.updateQuantity(item.product, quantity + 1);
+                              cart.updateQuantity(
+                                item.product,
+                                quantity +
+                                    1,
+                              );
                             },
                           ),
                         ],
@@ -170,49 +309,82 @@ class CartContent extends StatelessWidget {
 
         // Rodapé fixo: total + botão Continuar (padronizado com o app)
         Container(
-          width: double.infinity,
+          width:
+              double.infinity,
           decoration: BoxDecoration(
-            color: cs.surface,
+            color:
+                cs.surface,
             boxShadow: const [
               BoxShadow(
-                color: Color(0x14000000),
-                blurRadius: 8,
-                offset: Offset(0, -2),
+                color: Color(
+                  0x14000000,
+                ),
+                blurRadius:
+                    8,
+                offset: Offset(
+                  0,
+                  -2,
+                ),
               ),
             ],
           ),
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          padding: const EdgeInsets.fromLTRB(
+            16,
+            12,
+            16,
+            16,
+          ),
           child: SafeArea(
-            top: false,
+            top:
+                false,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment:
+                  CrossAxisAlignment.stretch,
               children: [
                 Text(
                   'Total: ${_money(cart.totalPrice)}',
                   style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight:
+                        FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(
+                  height:
+                      10,
+                ),
                 CustomButton(
-                  label: 'Continuar',
-                  icon: Icons.arrow_forward,
-                  backgroundColor: cs.primary,
-                  textColor: cs.onPrimary,
+                  label:
+                      'Continuar',
+                  icon:
+                      Icons.arrow_forward,
+                  backgroundColor:
+                      cs.primary,
+                  textColor:
+                      cs.onPrimary,
                   onPressed: () async {
                     final selectedAddress = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const AddressSelectionPage(),
+                        builder:
+                            (
+                              _,
+                            ) =>
+                                const AddressSelectionPage(),
                       ),
                     );
-                    if (context.mounted && selectedAddress != null) {
+                    if (context.mounted &&
+                        selectedAddress !=
+                            null) {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder:
-                              (_) =>
-                                  PaymentPage(selectedAddress: selectedAddress),
+                              (
+                                _,
+                              ) => PaymentPage(
+                                selectedAddress:
+                                    selectedAddress,
+                              ),
                         ),
                       );
                     }
@@ -225,10 +397,56 @@ class CartContent extends StatelessWidget {
       ],
     );
   }
+
+  Widget _cartImagePlaceholder() {
+    return Container(
+      width:
+          70,
+      height:
+          70,
+      color:
+          Colors.grey.shade100,
+      alignment:
+          Alignment.center,
+      child: FittedBox(
+        fit:
+            BoxFit.scaleDown,
+        child: Column(
+          mainAxisSize:
+              MainAxisSize.min,
+          children: [
+            const LeafGlyph(
+              size:
+                  40,
+              color:
+                  Colors.green,
+            ),
+            const SizedBox(
+              height:
+                  4,
+            ),
+            const Text(
+              'Imagem indisponível',
+              style: TextStyle(
+                color:
+                    Colors.grey,
+                fontSize:
+                    11,
+              ),
+              textAlign:
+                  TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 /// Botão quadrado 44x44 com bordas arredondadas (maior área de toque)
-class _StepButton extends StatelessWidget {
+class _StepButton
+    extends
+        StatelessWidget {
   const _StepButton({
     required this.icon,
     required this.onPressed,
@@ -240,25 +458,48 @@ class _StepButton extends StatelessWidget {
   final String tooltip;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
+      padding: const EdgeInsets.symmetric(
+        horizontal:
+            2,
+      ),
       child: Tooltip(
-        message: tooltip,
+        message:
+            tooltip,
         child: SizedBox(
-          width: 44,
-          height: 44,
+          width:
+              44,
+          height:
+              44,
           child: OutlinedButton(
             style: OutlinedButton.styleFrom(
-              padding: EdgeInsets.zero,
-              minimumSize: const Size(44, 44),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+              padding:
+                  EdgeInsets.zero,
+              minimumSize: const Size(
+                44,
+                44,
               ),
-              side: const BorderSide(color: Color(0x33000000)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  10,
+                ),
+              ),
+              side: const BorderSide(
+                color: Color(
+                  0x33000000,
+                ),
+              ),
             ),
-            onPressed: onPressed,
-            child: Icon(icon, size: 22),
+            onPressed:
+                onPressed,
+            child: Icon(
+              icon,
+              size:
+                  22,
+            ),
           ),
         ),
       ),
@@ -267,25 +508,54 @@ class _StepButton extends StatelessWidget {
 }
 
 /// Exibe a quantidade com boa legibilidade e área de toque separada
-class _QtyBadge extends StatelessWidget {
-  const _QtyBadge({required this.value});
+class _QtyBadge
+    extends
+        StatelessWidget {
+  const _QtyBadge({
+    required this.value,
+  });
   final int value;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     return Container(
-      width: 44,
-      alignment: Alignment.center,
-      margin: const EdgeInsets.symmetric(horizontal: 2),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+      width:
+          44,
+      alignment:
+          Alignment.center,
+      margin: const EdgeInsets.symmetric(
+        horizontal:
+            2,
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal:
+            6,
+        vertical:
+            8,
+      ),
       decoration: BoxDecoration(
-        color: const Color(0xFFF6F6F6),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0x33000000)),
+        color: const Color(
+          0xFFF6F6F6,
+        ),
+        borderRadius: BorderRadius.circular(
+          10,
+        ),
+        border: Border.all(
+          color: const Color(
+            0x33000000,
+          ),
+        ),
       ),
       child: Text(
         '$value',
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        style: const TextStyle(
+          fontSize:
+              16,
+          fontWeight:
+              FontWeight.w600,
+        ),
       ),
     );
   }

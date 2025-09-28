@@ -29,6 +29,8 @@ class AuthService {
     String email,
     String password,
   ) async {
+    // ...existing code...
+
     final hashedPassword = md5Hash(
       password,
     );

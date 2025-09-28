@@ -1,8 +1,15 @@
 // lib/screens/store_product_form_page.dart
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import '../services/s3_upload_service.dart';
+import 'package:mime/mime.dart';
+import '../aws_s3_config.dart';
 import '../models/store_product.dart';
 import '../services/store_product_service.dart';
 import '../widgets/custom_button.dart';
+import '../widgets/plant_card_widget.dart';
+import '../widgets/leaf_glyph.dart';
 
 class StoreProductFormPage
     extends
@@ -56,8 +63,10 @@ class _ProductFormPageState
   final _stockCtrl =
       TextEditingController();
   String? _catValue;
-  final _imgCtrl =
-      TextEditingController();
+  String? _imageUrl;
+  String? _localImagePath;
+  bool _uploadingImage =
+      false;
 
   bool _saving =
       false;
@@ -72,7 +81,6 @@ class _ProductFormPageState
       _cientificNameCtrl.text = p.cientificName;
       _descCtrl.text = p.descricaoProd;
       _descPlantaCtrl.text = p.descricaoPlanta;
-      // Tenta extrair os valores máximos e mínimos dos campos existentes
       if (p.temperaturaMax !=
           null) {
         _tempMaxCtrl.text = p.temperaturaMax.toString();
@@ -108,7 +116,8 @@ class _ProductFormPageState
       _catValue =
           p.category ??
           '';
-      _imgCtrl.text = p.imageURL;
+      _imageUrl =
+          p.imageURL;
     }
   }
 
@@ -122,14 +131,102 @@ class _ProductFormPageState
     _tempMinCtrl.dispose();
     _umidadeMaxCtrl.dispose();
     _umidadeMinCtrl.dispose();
-    // _tempoSolCtrl removido
     _valDiasCtrl.dispose();
     _dataPlantioCtrl.dispose();
     _priceCtrl.dispose();
     _stockCtrl.dispose();
-    // _catCtrl removido
-    _imgCtrl.dispose();
     super.dispose();
+  }
+
+  Future<
+    void
+  >
+  _pickAndUploadImage() async {
+    final picker =
+        ImagePicker();
+    final picked = await picker.pickImage(
+      source:
+          ImageSource.gallery,
+    );
+    if (picked ==
+        null)
+      return;
+    final file = File(
+      picked.path,
+    );
+    final mimeType = lookupMimeType(
+      file.path,
+    );
+    if (mimeType !=
+            'image/jpeg' &&
+        mimeType !=
+            'image/png') {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Selecione apenas arquivos .jpg ou .png',
+          ),
+        ),
+      );
+      return;
+    }
+    setState(
+      () {
+        _uploadingImage =
+            true;
+        _localImagePath =
+            file.path;
+      },
+    );
+    try {
+      final fileName =
+          '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
+      final url = await S3UploadService.uploadFile(
+        file:
+            file,
+        filename:
+            fileName,
+        contentType:
+            mimeType ??
+            'image/jpeg',
+      );
+      setState(
+        () {
+          _imageUrl =
+              url;
+        },
+      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Imagem enviada com sucesso!',
+          ),
+        ),
+      );
+    } catch (
+      e
+    ) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Falha ao enviar imagem: $e',
+          ),
+        ),
+      );
+    } finally {
+      setState(
+        () {
+          _uploadingImage =
+              false;
+        },
+      );
+    }
   }
 
   Future<
@@ -268,9 +365,8 @@ class _ProductFormPageState
               ? null
               : _catValue,
       imageURL:
-          _imgCtrl.text.trim().isEmpty
-              ? ''
-              : _imgCtrl.text.trim(),
+          _imageUrl ??
+          '',
       createdAt:
           widget.storeProduct?.createdAt,
     );
@@ -788,21 +884,51 @@ class _ProductFormPageState
                     height:
                         12,
                   ),
-                  // URL da imagem
-                  TextFormField(
-                    controller:
-                        _imgCtrl,
-                    decoration: _dec(
-                      'URL da imagem',
-                    ),
-                    onChanged:
-                        (
-                          _,
-                        ) => setState(
-                          () {},
+                  // Upload de imagem
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          icon: const Icon(
+                            Icons.photo_library,
+                          ),
+                          label: Text(
+                            _localImagePath !=
+                                    null
+                                ? 'Imagem selecionada'
+                                : 'Selecionar imagem',
+                          ),
+                          onPressed:
+                              _uploadingImage
+                                  ? null
+                                  : _pickAndUploadImage,
                         ),
+                      ),
+                      if (_uploadingImage)
+                        const Padding(
+                          padding: EdgeInsets.only(
+                            left:
+                                12,
+                          ),
+                          child: SizedBox(
+                            width:
+                                24,
+                            height:
+                                24,
+                            child: CircularProgressIndicator(
+                              strokeWidth:
+                                  2,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                  if (_imgCtrl.text.trim().isNotEmpty) ...[
+                  if ((_localImagePath !=
+                              null ||
+                          (_imageUrl !=
+                                  null &&
+                              _imageUrl!.isNotEmpty)) &&
+                      !_uploadingImage) ...[
                     const SizedBox(
                       height:
                           12,
@@ -811,23 +937,88 @@ class _ProductFormPageState
                       borderRadius: BorderRadius.circular(
                         12,
                       ),
-                      child: Image.network(
-                        _imgCtrl.text.trim(),
-                        height:
-                            160,
-                        width:
-                            double.infinity,
-                        fit:
-                            BoxFit.cover,
-                        errorBuilder:
-                            (
-                              _,
-                              __,
-                              ___,
-                            ) =>
-                                const SizedBox.shrink(),
-                      ),
+                      child:
+                          _localImagePath !=
+                                  null
+                              ? Image.file(
+                                File(
+                                  _localImagePath!,
+                                ),
+                                height:
+                                    160,
+                                width:
+                                    double.infinity,
+                                fit:
+                                    BoxFit.cover,
+                                errorBuilder:
+                                    (
+                                      _,
+                                      __,
+                                      ___,
+                                    ) =>
+                                        _placeholderImage(),
+                              )
+                              : Image.network(
+                                _imageUrl!,
+                                height:
+                                    160,
+                                width:
+                                    double.infinity,
+                                fit:
+                                    BoxFit.cover,
+                                errorBuilder:
+                                    (
+                                      _,
+                                      __,
+                                      ___,
+                                    ) =>
+                                        _placeholderImage(),
+                              ),
                     ),
+                    const SizedBox(
+                      height:
+                          8,
+                    ),
+                    if (_imageUrl !=
+                            null &&
+                        _imageUrl!.isNotEmpty)
+                      Align(
+                        alignment:
+                            Alignment.centerRight,
+                        child: TextButton.icon(
+                          icon: const Icon(
+                            Icons.delete,
+                            color:
+                                Colors.red,
+                          ),
+                          label: const Text(
+                            'Remover imagem',
+                            style: TextStyle(
+                              color:
+                                  Colors.red,
+                            ),
+                          ),
+                          onPressed:
+                              _saving
+                                  ? null
+                                  : () {
+                                    setState(
+                                      () {
+                                        _imageUrl =
+                                            null;
+                                        _localImagePath =
+                                            null;
+                                      },
+                                    );
+                                  },
+                        ),
+                      ),
+                  ] else if (!_uploadingImage) ...[
+                    const SizedBox(
+                      height:
+                          12,
+                    ),
+                    _placeholderImage(),
                   ],
                   const SizedBox(
                     height:
@@ -853,6 +1044,51 @@ class _ProductFormPageState
                   ),
                 ],
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _placeholderImage() {
+    // Usa o mesmo placeholder visual da tela de Plantas
+    return Container(
+      height:
+          160,
+      width:
+          double.infinity,
+      alignment:
+          Alignment.center,
+      color:
+          Colors.grey.shade100,
+      child: FittedBox(
+        fit:
+            BoxFit.scaleDown,
+        child: Column(
+          mainAxisSize:
+              MainAxisSize.min,
+          children: [
+            const LeafGlyph(
+              size:
+                  40,
+              color:
+                  Colors.grey,
+            ),
+            const SizedBox(
+              height:
+                  4,
+            ),
+            const Text(
+              'Imagem indisponível',
+              style: TextStyle(
+                color:
+                    Colors.grey,
+                fontSize:
+                    11,
+              ),
+              textAlign:
+                  TextAlign.center,
             ),
           ],
         ),
