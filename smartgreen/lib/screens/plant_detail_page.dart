@@ -42,10 +42,39 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Falha ao carregar planta: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Falha ao carregar planta: $e')));
       Navigator.of(context).pop();
+    }
+  }
+
+  // MOVEMOS O MÉTODO _onTakePhoto PARA DENTRO DA CLASSE
+  Future<void> _onTakePhoto() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 2048,
+        imageQuality: 85,
+      );
+      if (image == null) return; // usuário cancelou
+      final savedPath = await _photoService.savePhotoForPlant(
+        widget.plantId,
+        File(image.path),
+      );
+      if (!mounted) return;
+      setState(() => _localPhotoPath = savedPath);
+      if (!mounted) return;
+      // Usando o método showSnackBar diretamente
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Foto salva para esta planta.')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Falha ao salvar foto: $e')));
     }
   }
 
@@ -135,7 +164,7 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
     );
   }
 
-  Widget _buildSliderRow({ 
+  Widget _buildSliderRow({
     required String title,
     required double value,
     required double min,
@@ -144,12 +173,12 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
     required String unit,
     required IconData icon,
     required Color iconColor,
-  }) { 
-    final clamped = value.clamp(min, max); 
-    final t = (clamped - min) / (max - min == 0 ? 1 : (max - min)); 
-    const trackHeight = 12.0; 
-    const markerSize = 24.0; 
-    const innerIconSize = 16.0; 
+  }) {
+    final clamped = value.clamp(min, max);
+    final t = (clamped - min) / (max - min == 0 ? 1 : (max - min));
+    const trackHeight = 12.0;
+    const markerSize = 24.0;
+    const innerIconSize = 16.0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -158,14 +187,14 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
         const SizedBox(height: 6),
         LayoutBuilder(
           builder: (context, constraints) {
-            final w = constraints.maxWidth; 
-            final left = (w - markerSize) * t; 
-            final top = (24 - markerSize) / 2; 
-            return SizedBox( 
-              height: 24, 
-              child: Stack( 
-                children: [ 
-                  Positioned.fill( 
+            final w = constraints.maxWidth;
+            final left = (w - markerSize) * t;
+            final top = (24 - markerSize) / 2;
+            return SizedBox(
+              height: 24,
+              child: Stack(
+                children: [
+                  Positioned.fill(
                     top: (24 - trackHeight) / 2,
                     bottom: (24 - trackHeight) / 2,
                     child: Container(
@@ -175,9 +204,9 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
                       ),
                     ),
                   ),
-                  Positioned( 
-                    left: left, 
-                    top: top, 
+                  Positioned(
+                    left: left,
+                    top: top,
                     child: Builder(
                       builder: (context) {
                         final cs = Theme.of(context).colorScheme;
@@ -190,16 +219,20 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
                             border: Border.all(color: cs.primary, width: 2),
                           ),
                           alignment: Alignment.center,
-                          child: Icon(icon, size: innerIconSize, color: iconColor),
+                          child: Icon(
+                            icon,
+                            size: innerIconSize,
+                            color: iconColor,
+                          ),
                         );
                       },
                     ),
-                  ), 
-                ], 
-              ), 
-            ); 
-          }, 
-        ), 
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
         const SizedBox(height: 18),
       ],
     );
@@ -208,7 +241,9 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
   Widget _buildTopImage() {
     final url = _plant?.imageURL;
     const double height = 180;
-    if (_localPhotoPath != null && _localPhotoPath!.isNotEmpty && File(_localPhotoPath!).existsSync()) {
+    if (_localPhotoPath != null &&
+        _localPhotoPath!.isNotEmpty &&
+        File(_localPhotoPath!).existsSync()) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Image.file(
@@ -230,7 +265,6 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
           width: double.infinity,
           fit: BoxFit.cover,
           alignment: Alignment.center,
-          // Mostra nosso placeholder apenas em erro; no carregamento inicial deixa em branco
           errorBuilder: (_, __, ___) => _imagePlaceholder(height: height),
         ),
       );
@@ -247,48 +281,27 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
         borderRadius: BorderRadius.circular(12),
       ),
       alignment: Alignment.center,
-      child: isLoading
-          ? const SizedBox(
-              height: 22,
-              width: 22,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.eco, size: 60, color: Colors.grey),
-                const SizedBox(height: 8),
-                const Text(
-                  'Imagem indisponível',
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
+      child:
+          isLoading
+              ? const SizedBox(
+                height: 22,
+                width: 22,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+              : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.eco, size: 60, color: Colors.grey),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Imagem indisponível',
+                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
     );
   }
 }
 
-extension on BuildContext {
-  void showSnack(String msg) {
-    ScaffoldMessenger.of(this).showSnackBar(SnackBar(content: Text(msg)));
-  }
-}
-
-extension _PickSave on _PlantDetailPageState {
-  Future<void> _onTakePhoto() async {
-    try {
-      final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(source: ImageSource.camera, maxWidth: 2048, imageQuality: 85);
-      if (image == null) return; // user canceled
-      final savedPath = await _photoService.savePhotoForPlant(widget.plantId, File(image.path));
-      if (!mounted) return;
-      setState(() => _localPhotoPath = savedPath);
-      if (!mounted) return;
-      context.showSnack('Foto salva para esta planta.');
-    } catch (e) {
-      if (!mounted) return;
-      context.showSnack('Falha ao salvar foto: $e');
-    }
-  }
-}
+// REMOVEMOS AS EXTENSÕES POIS NÃO SÃO MAIS NECESSÁRIAS
