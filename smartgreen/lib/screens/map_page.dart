@@ -1,9 +1,12 @@
 // lib/screens/map_page.dart
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
 
 import '../models/address.dart';
 import '../widgets/custom_button.dart';
@@ -32,6 +35,10 @@ class _MapPageState extends State<MapPage> {
   final referenceCtrl = TextEditingController();
 
   final mapController = MapController();
+
+  // Variáveis para busca do CEP
+  bool _isSearchingCep = false;
+  Timer? _cepDebounceTimer;
 
   // --- UF helpers (aceita nome por extenso e sigla; devolve sempre SIGLA) ---
   static const Set<String> _ufs = {
@@ -128,6 +135,22 @@ class _MapPageState extends State<MapPage> {
     complementCtrl.text = widget.address.complement;
     referenceCtrl.text = widget.address.reference;
     _loadInitialLocation();
+
+    _setupCepListener();
+  }
+
+  @override
+  void dispose() {
+    _cepDebounceTimer?.cancel();
+    streetCtrl.dispose();
+    numberCtrl.dispose();
+    neighborhoodCtrl.dispose();
+    cityCtrl.dispose();
+    stateCtrl.dispose();
+    cepCtrl.dispose();
+    complementCtrl.dispose();
+    referenceCtrl.dispose();
+    super.dispose();
   }
 
   String _bestCityFromPlacemarks(List<Placemark> ps) {
@@ -223,9 +246,108 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
+  // ---------- Busca de CEP ----------
+  void _setupCepListener() {
+    cepCtrl.addListener(() {
+      _cepDebounceTimer?.cancel();
+
+      _cepDebounceTimer = Timer(const Duration(milliseconds: 800), () {
+        final cep = cepCtrl.text.trim();
+        final cleanCep = cep.replaceAll(RegExp(r'\D'), '');
+
+        if (cleanCep.length == 8) {
+          _fetchAddressFromCep(cep);
+        }
+      });
+    });
+  }
+
+  Future<void> _fetchAddressFromCep(String cep) async {
+    if (_isSearchingCep) return;
+
+    setState(() {
+      _isSearchingCep = true;
+    });
+
+    try {
+      final response = await http
+          .get(Uri.parse('https://viacep.com.br/ws/$cep/json/'))
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        if (data['erro'] != true) {
+          // Preenche os campos com os dados da API
+          setState(() {
+            streetCtrl.text = data['logradouro'] ?? '';
+            neighborhoodCtrl.text = data['bairro'] ?? '';
+            cityCtrl.text = data['localidade'] ?? '';
+            stateCtrl.text = data['uf'] ?? '';
+            cepCtrl.text = data['cep'] ?? cepCtrl.text;
+          });
+
+          // Tenta geocodificar o endereço completo para obter coordenadas
+          _geocodeAddressFromCep(data);
+        }
+      }
+    } catch (e) {
+      debugPrint('Erro ao buscar CEP: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSearchingCep = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _geocodeAddressFromCep(Map<String, dynamic> data) async {
+    try {
+      final query = [
+        data['logradouro'],
+        data['bairro'],
+        data['localidade'],
+        data['uf'],
+      ].where((e) => e != null && e.isNotEmpty).join(', ');
+
+      if (query.isNotEmpty) {
+        final results = await locationFromAddress(query);
+        if (results.isNotEmpty) {
+          final newLocation = LatLng(
+            results.first.latitude,
+            results.first.longitude,
+          );
+
+          setState(() {
+            _location = newLocation;
+          });
+
+          // Move o mapa para a nova localização
+          mapController.move(newLocation, 16);
+        }
+      }
+    } catch (e) {
+      debugPrint('Erro no geocoding: $e');
+    }
+  }
+
   Widget _buildForm(BuildContext context) {
     // Inputs herdam InputDecorationTheme do tema global
-    InputDecoration dec(String label) => InputDecoration(labelText: label);
+    InputDecoration dec(String label) => InputDecoration(
+      labelText: label,
+      suffixIcon:
+          label == 'CEP' && _isSearchingCep
+              ? const Padding(
+                padding: EdgeInsets.all(12),
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              )
+              : null,
+    );
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),

@@ -1,6 +1,9 @@
 // lib/screens/address_form_page.dart
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 
 import '../models/address.dart';
 import '../services/address_service.dart';
@@ -32,6 +35,10 @@ class _AddressFormPageState extends State<AddressFormPage> {
 
   Color get _green => const Color(0xFF2E7D32);
   bool get _isEditing => widget.address != null;
+
+  // Variáveis para busca do CEP
+  bool _isSearchingCep = false;
+  Timer? _cepDebounceTimer;
 
   // UF válidas
   static const Set<String> _ufs = {
@@ -78,10 +85,13 @@ class _AddressFormPageState extends State<AddressFormPage> {
       neighborhoodController.text = a.neighborhood;
       referenceController.text = a.reference;
     }
+
+    _setupCepListener();
   }
 
   @override
   void dispose() {
+    _cepDebounceTimer?.cancel();
     streetController.dispose();
     cityController.dispose();
     cepController.dispose();
@@ -167,6 +177,84 @@ class _AddressFormPageState extends State<AddressFormPage> {
     var r = s.replaceAll(RegExp(r'\s+'), ' ').trim();
     if (max != null && r.length > max) r = r.substring(0, max);
     return r;
+  }
+
+  // ---------- Busca de CEP ----------
+  void _setupCepListener() {
+    cepController.addListener(() {
+      _cepDebounceTimer?.cancel();
+
+      _cepDebounceTimer = Timer(const Duration(milliseconds: 800), () {
+        final cep = cepController.text.trim();
+        final cleanCep = _onlyDigits(cep);
+
+        if (cleanCep.length == 8) {
+          _fetchAddressFromCep(cep);
+        }
+      });
+    });
+  }
+
+  Future<void> _fetchAddressFromCep(String cep) async {
+    if (_isSearchingCep) return;
+
+    setState(() {
+      _isSearchingCep = true;
+    });
+
+    try {
+      final response = await http
+          .get(Uri.parse('https://viacep.com.br/ws/$cep/json/'))
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        if (data['erro'] != true) {
+          // Preenche os campos com os dados da API
+          setState(() {
+            streetController.text = data['logradouro'] ?? '';
+            neighborhoodController.text = data['bairro'] ?? '';
+            cityController.text = data['localidade'] ?? '';
+            stateController.text = data['uf'] ?? '';
+          });
+        } else {
+          _showCepNotFoundMessage();
+        }
+      } else {
+        _showCepErrorMessage();
+      }
+    } catch (e) {
+      _showCepErrorMessage();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSearchingCep = false;
+        });
+      }
+    }
+  }
+
+  void _showCepNotFoundMessage() {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('CEP não encontrado'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  void _showCepErrorMessage() {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erro ao buscar CEP'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   // ---------- Ações ----------
@@ -301,7 +389,21 @@ class _AddressFormPageState extends State<AddressFormPage> {
                               controller: cepController,
                               maxLength: 9,
                               keyboardType: TextInputType.number,
-                              decoration: _inputDecoration('CEP*'),
+                              decoration: _inputDecoration('CEP*').copyWith(
+                                suffixIcon:
+                                    _isSearchingCep
+                                        ? const Padding(
+                                          padding: EdgeInsets.all(12),
+                                          child: SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          ),
+                                        )
+                                        : null,
+                              ),
                               validator: _validateCep,
                               onChanged: (v) {
                                 final d = _onlyDigits(v);
