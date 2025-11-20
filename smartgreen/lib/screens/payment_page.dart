@@ -88,15 +88,39 @@ class _PaymentPageState extends State<PaymentPage> {
   }
 
   Widget _buildPaymentOption(String method, String label, String iconPath) {
+    final isSelected = _paymentMethod == method;
+
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: ListTile(
         leading: Image.asset(iconPath, width: 48, height: 48),
         title: Text(label),
-        trailing: Radio<String>(
-          value: method,
-          groupValue: _paymentMethod,
-          onChanged: (value) => setState(() => _paymentMethod = value!),
+        trailing: GestureDetector(
+          onTap: () => setState(() => _paymentMethod = method),
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color:
+                    isSelected
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.grey,
+                width: 2,
+              ),
+            ),
+            child:
+                isSelected
+                    ? Container(
+                      margin: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    )
+                    : null,
+          ),
         ),
         onTap: () => setState(() => _paymentMethod = method),
       ),

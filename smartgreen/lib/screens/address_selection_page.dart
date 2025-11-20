@@ -162,6 +162,7 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                   itemBuilder: (context, index) {
                     if (index < addresses.length) {
                       final address = addresses[index];
+                      final isSelected = selectedAddressId == address.id;
 
                       return Dismissible(
                         key: ValueKey(address.id),
@@ -212,7 +213,12 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          color: const Color(0xFFF4F8F2),
+                          color:
+                              isSelected
+                                  ? const Color(
+                                    0xFF2E7D32,
+                                  ).withValues(alpha: 0.1)
+                                  : const Color(0xFFF4F8F2),
                           child: InkWell(
                             borderRadius: BorderRadius.circular(12),
                             onTap: () {
@@ -229,15 +235,37 @@ class _AddressSelectionPageState extends State<AddressSelectionPage> {
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Radio<String>(
-                                    value: address.id,
-                                    groupValue: selectedAddressId,
-                                    onChanged:
-                                        (v) => setState(
-                                          () => selectedAddressId = v,
+                                  // Substituição das propriedades deprecadas
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        selectedAddressId = address.id;
+                                      });
+                                    },
+                                    child: Container(
+                                      width: 24,
+                                      height: 24,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color:
+                                              isSelected ? _green : Colors.grey,
+                                          width: 2,
                                         ),
+                                      ),
+                                      child:
+                                          isSelected
+                                              ? Container(
+                                                margin: const EdgeInsets.all(2),
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: _green,
+                                                ),
+                                              )
+                                              : null,
+                                    ),
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: 12),
                                   Expanded(child: _addressSummary(address)),
                                 ],
                               ),

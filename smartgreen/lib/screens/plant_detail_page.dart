@@ -24,6 +24,9 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
   String? _localPhotoPath;
   final _photoService = UserPhotoService();
 
+  // Definindo a cor verde para manter consistência com o header
+  Color get _greenColor => const Color(0xFF2E7D32);
+
   @override
   void initState() {
     super.initState();
@@ -88,11 +91,14 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(plant.name),
+        backgroundColor: _greenColor,
+        foregroundColor: Colors.white,
         actions: [
           IconButton(
             tooltip: 'Tirar foto',
             icon: const Icon(Icons.camera_alt),
             onPressed: _onTakePhoto,
+            color: Colors.white,
           ),
         ],
       ),
@@ -149,8 +155,10 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
         child: CustomButton(
-          label: 'Editar planta',
+          label: 'Editar Planta',
           icon: Icons.edit,
+          backgroundColor: _greenColor, // Aplicando a cor verde do header
+          textColor: Colors.white, // Texto branco para contraste
           onPressed: () async {
             await Navigator.of(context).push(
               MaterialPageRoute(
@@ -209,14 +217,13 @@ class _PlantDetailPageState extends State<PlantDetailPage> {
                     top: top,
                     child: Builder(
                       builder: (context) {
-                        final cs = Theme.of(context).colorScheme;
                         return Container(
                           width: markerSize,
                           height: markerSize,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: Colors.white,
-                            border: Border.all(color: cs.primary, width: 2),
+                            border: Border.all(color: _greenColor, width: 2),
                           ),
                           alignment: Alignment.center,
                           child: Icon(

@@ -170,9 +170,9 @@ class _PlantFormPageState extends State<PlantFormPage> {
       setState(() {
         _localImagePath = null;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Falha ao enviar imagem: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Falha ao enviar imagem: $e')));
     } finally {
       if (mounted) {
         setState(() {
@@ -439,7 +439,7 @@ class _PlantFormPageState extends State<PlantFormPage> {
                 ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _selectedLight,
+                initialValue: _selectedLight,
                 decoration: const InputDecoration(labelText: 'Exposição Solar'),
                 items:
                     _lightOptions
@@ -482,19 +482,19 @@ class _PlantFormPageState extends State<PlantFormPage> {
                   child:
                       _localImagePath != null
                           ? Image.file(
-                              File(_localImagePath!),
-                              height: 160,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _placeholderImage(),
-                            )
+                            File(_localImagePath!),
+                            height: 160,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _placeholderImage(),
+                          )
                           : Image.network(
-                              _imageUrl!,
-                              height: 160,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _placeholderImage(),
-                            ),
+                            _imageUrl!,
+                            height: 160,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _placeholderImage(),
+                          ),
                 ),
                 const SizedBox(height: 8),
                 if (_imageUrl != null && _imageUrl!.isNotEmpty)
