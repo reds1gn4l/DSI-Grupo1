@@ -1,10 +1,16 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:mime/mime.dart';
 import '../models/plant.dart';
 import '../services/plant_service.dart';
 import '../services/store_product_service.dart';
 import '../models/store_product.dart';
-import 'dart:async';
+import '../services/s3_upload_service.dart';
+import '../widgets/leaf_glyph.dart';
 import '../globals.dart';
 
 class PlantFormPage extends StatefulWidget {
@@ -31,6 +37,9 @@ class _PlantFormPageState extends State<PlantFormPage> {
   List<StoreProduct> _suggestions = <StoreProduct>[];
   bool _loadingSuggestions = false;
   Timer? _debounce;
+  String? _imageUrl;
+  String? _localImagePath;
+  bool _uploadingImage = false;
   static const List<String> _lightOptions = <String>[
     'Sol Pleno',
     'Meia Sombra',
@@ -73,6 +82,7 @@ class _PlantFormPageState extends State<PlantFormPage> {
       _umidMaxController.text = p.umidadeMax?.toString() ?? '';
       _selectedLight = _normalizeLight(p.exposicaoSolar) ?? _lightOptions.first;
       _selectedDate = p.dataPlantio ?? DateTime.now();
+      _imageUrl = p.imageURL;
     } else {
       _selectedDate = DateTime.now();
       _selectedLight = _lightOptions.first;
@@ -112,12 +122,94 @@ class _PlantFormPageState extends State<PlantFormPage> {
   void dispose() {
     _debounce?.cancel();
     _nameFocus.dispose();
+    _nameController.dispose();
+    _tempMinController.dispose();
+    _tempMaxController.dispose();
+    _umidMinController.dispose();
+    _umidMaxController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked == null) {
+      return;
+    }
+    final file = File(picked.path);
+    final mimeType = lookupMimeType(file.path);
+    if (mimeType != 'image/jpeg' && mimeType != 'image/png') {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selecione apenas arquivos .jpg ou .png')),
+      );
+      return;
+    }
+    setState(() {
+      _uploadingImage = true;
+      _localImagePath = file.path;
+    });
+    try {
+      final fileName =
+          '${DateTime.now().millisecondsSinceEpoch}_${file.uri.pathSegments.last}';
+      final url = await S3UploadService.uploadFile(
+        file: file,
+        filename: fileName,
+        contentType: mimeType ?? 'image/jpeg',
+      );
+      if (!mounted) return;
+      setState(() {
+        _imageUrl = url;
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Imagem enviada com sucesso!')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _localImagePath = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Falha ao enviar imagem: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _uploadingImage = false;
+        });
+      }
+    }
+  }
+
+  Widget _placeholderImage() {
+    return Container(
+      height: 160,
+      width: double.infinity,
+      alignment: Alignment.center,
+      color: Colors.grey.shade100,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            LeafGlyph(size: 40, color: Colors.grey),
+            SizedBox(height: 4),
+            Text(
+              'Imagem indisponível',
+              style: TextStyle(color: Colors.grey, fontSize: 11),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.existingPlant != null;
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: Text(isEditing ? 'Editar Planta' : 'Nova Planta')),
@@ -220,9 +312,9 @@ class _PlantFormPageState extends State<PlantFormPage> {
                             _umidMaxController.text =
                                 s.umidadeMax!.round().toString();
                           }
-                          _selectedLight =
-                              _normalizeLight(s.tempoSol) ?? _selectedLight;
                           setState(() {
+                            _selectedLight =
+                                _normalizeLight(s.tempoSol) ?? _selectedLight;
                             _suggestions = <StoreProduct>[];
                           });
                         },
@@ -347,7 +439,7 @@ class _PlantFormPageState extends State<PlantFormPage> {
                 ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                initialValue: _selectedLight,
+                value: _selectedLight,
                 decoration: const InputDecoration(labelText: 'Exposição Solar'),
                 items:
                     _lightOptions
@@ -377,6 +469,82 @@ class _PlantFormPageState extends State<PlantFormPage> {
                       }
                     },
                   ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              const SizedBox(height: 12),
+              if ((_localImagePath != null ||
+                      (_imageUrl != null && _imageUrl!.isNotEmpty)) &&
+                  !_uploadingImage) ...[
+                const SizedBox(height: 12),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child:
+                      _localImagePath != null
+                          ? Image.file(
+                              File(_localImagePath!),
+                              height: 160,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => _placeholderImage(),
+                            )
+                          : Image.network(
+                              _imageUrl!,
+                              height: 160,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => _placeholderImage(),
+                            ),
+                ),
+                const SizedBox(height: 8),
+                if (_imageUrl != null && _imageUrl!.isNotEmpty)
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      icon: const Icon(Icons.delete, color: Colors.grey),
+                      label: const Text(
+                        'Remover imagem',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _imageUrl = null;
+                          _localImagePath = null;
+                        });
+                      },
+                    ),
+                  ),
+              ] else if (!_uploadingImage) ...[
+                const SizedBox(height: 12),
+                _placeholderImage(),
+              ],
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: cs.tertiary,
+                        foregroundColor: Colors.white,
+                      ),
+                      icon: const Icon(Icons.photo_library),
+                      label: Text(
+                        _localImagePath != null
+                            ? 'Imagem selecionada'
+                            : 'Selecionar imagem',
+                      ),
+                      onPressed: _uploadingImage ? null : _pickAndUploadImage,
+                    ),
+                  ),
+                  if (_uploadingImage)
+                    const Padding(
+                      padding: EdgeInsets.only(left: 12),
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -428,6 +596,7 @@ class _PlantFormPageState extends State<PlantFormPage> {
                       exposicaoSolar: _selectedLight,
                       dataPlantio: _selectedDate,
                       status: 'verde',
+                      imageURL: _imageUrl,
                       userId: user.id,
                     );
 

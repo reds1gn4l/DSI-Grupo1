@@ -284,8 +284,7 @@ class _ProductFormPageState extends State<StoreProductFormPage> {
                   ],
                   // Categoria
                   DropdownButtonFormField<String>(
-                    initialValue:
-                        _catValue?.isNotEmpty == true ? _catValue : null,
+                    value: _catValue?.isNotEmpty == true ? _catValue : null,
                     decoration: _dec('Categoria'),
                     items: const [
                       DropdownMenuItem(
@@ -372,7 +371,7 @@ class _ProductFormPageState extends State<StoreProductFormPage> {
                   // Tempo de Sol (se não for insumo/ferramenta)
                   if (_catValue != 'Insumo/Ferramenta') ...[
                     DropdownButtonFormField<String>(
-                      initialValue:
+                      value:
                           _tempoSolValue?.isNotEmpty == true
                               ? _tempoSolValue
                               : null,
