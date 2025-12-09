@@ -353,91 +353,36 @@ class _MapPageState extends State<MapPage> {
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
       child: Column(
         children: [
-          Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: TextField(
-                  controller: cepCtrl,
-                  decoration: dec('CEP'),
-                  keyboardType: TextInputType.number,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: stateCtrl,
-                  decoration: dec('UF'),
-                  textCapitalization: TextCapitalization.characters,
-                  onChanged: (v) {
-                    final norm = _toUF(v, fallback: v.toUpperCase());
-                    if (norm != stateCtrl.text) {
-                      final sel = stateCtrl.selection;
-                      stateCtrl.value = TextEditingValue(
-                        text: norm,
-                        selection: sel,
-                      );
-                    }
-                  },
-                ),
-              ),
-            ],
+          TextField(
+            controller: cepCtrl,
+            decoration: dec('CEP'),
+            keyboardType: TextInputType.number,
           ),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: cityCtrl,
-                  decoration: dec('Cidade'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: neighborhoodCtrl,
-                  decoration: dec('Bairro'),
-                ),
-              ),
-            ],
+          TextField(
+            controller: stateCtrl,
+            decoration: dec('UF'),
+            textCapitalization: TextCapitalization.characters,
+            onChanged: (v) {
+              final norm = _toUF(v, fallback: v.toUpperCase());
+              if (norm != stateCtrl.text) {
+                final sel = stateCtrl.selection;
+                stateCtrl.value = TextEditingValue(text: norm, selection: sel);
+              }
+            },
           ),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: TextField(
-                  controller: streetCtrl,
-                  decoration: dec('Endereço'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: numberCtrl,
-                  decoration: dec('Número'),
-                ),
-              ),
-            ],
-          ),
+          TextField(controller: cityCtrl, decoration: dec('Cidade')),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: complementCtrl,
-                  decoration: dec('Complemento'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: referenceCtrl,
-                  decoration: dec('Referência'),
-                ),
-              ),
-            ],
-          ),
+          TextField(controller: neighborhoodCtrl, decoration: dec('Bairro')),
+          const SizedBox(height: 8),
+          TextField(controller: streetCtrl, decoration: dec('Logradouro')),
+          const SizedBox(height: 8),
+          TextField(controller: numberCtrl, decoration: dec('Número')),
+          const SizedBox(height: 8),
+          TextField(controller: complementCtrl, decoration: dec('Complemento')),
+          const SizedBox(height: 8),
+          TextField(controller: referenceCtrl, decoration: dec('Referência')),
         ],
       ),
     );

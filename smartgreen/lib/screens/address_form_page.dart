@@ -158,9 +158,9 @@ class _AddressFormPageState extends State<AddressFormPage> {
 
   String? _validateStreet(String? v) {
     final s = (v ?? '').trim();
-    if (s.isEmpty) return 'Informe o endereço';
+    if (s.isEmpty) return 'Informe o logradouro';
     if (!RegExp(r"^[A-Za-zÀ-ÿ0-9 .,'-]{3,}$").hasMatch(s)) {
-      return 'Endereço inválido';
+      return 'Logradouro inválido';
     }
     return null;
   }
@@ -381,117 +381,89 @@ class _AddressFormPageState extends State<AddressFormPage> {
                   key: _formKey,
                   child: ListView(
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: TextFormField(
-                              controller: cepController,
-                              maxLength: 9,
-                              keyboardType: TextInputType.number,
-                              decoration: _inputDecoration('CEP*').copyWith(
-                                suffixIcon:
-                                    _isSearchingCep
-                                        ? const Padding(
-                                          padding: EdgeInsets.all(12),
-                                          child: SizedBox(
-                                            width: 16,
-                                            height: 16,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                            ),
-                                          ),
-                                        )
-                                        : null,
-                              ),
-                              validator: _validateCep,
-                              onChanged: (v) {
-                                final d = _onlyDigits(v);
-                                if (d.length <= 8) {
-                                  if (d.length >= 6) {
-                                    cepController.value = TextEditingValue(
-                                      text:
-                                          '${d.substring(0, 5)}-${d.substring(5)}',
-                                      selection: TextSelection.collapsed(
-                                        offset: d.length + 1,
+                      TextFormField(
+                        controller: cepController,
+                        maxLength: 9,
+                        keyboardType: TextInputType.number,
+                        decoration: _inputDecoration('CEP*').copyWith(
+                          suffixIcon:
+                              _isSearchingCep
+                                  ? const Padding(
+                                    padding: EdgeInsets.all(12),
+                                    child: SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
                                       ),
-                                    );
-                                  } else {
-                                    cepController.value = TextEditingValue(
-                                      text: d,
-                                      selection: TextSelection.collapsed(
-                                        offset: d.length,
-                                      ),
-                                    );
-                                  }
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextFormField(
-                              controller: stateController,
-                              maxLength: 2,
-                              textCapitalization: TextCapitalization.characters,
-                              inputFormatters: [UpperCaseTextFormatter()],
-                              decoration: _inputDecoration('UF*'),
-                              validator: _validateUF,
-                            ),
-                          ),
-                        ],
+                                    ),
+                                  )
+                                  : null,
+                        ),
+                        validator: _validateCep,
+                        onChanged: (v) {
+                          final d = _onlyDigits(v);
+                          if (d.length <= 8) {
+                            if (d.length >= 6) {
+                              cepController.value = TextEditingValue(
+                                text: '${d.substring(0, 5)}-${d.substring(5)}',
+                                selection: TextSelection.collapsed(
+                                  offset: d.length + 1,
+                                ),
+                              );
+                            } else {
+                              cepController.value = TextEditingValue(
+                                text: d,
+                                selection: TextSelection.collapsed(
+                                  offset: d.length,
+                                ),
+                              );
+                            }
+                          }
+                        },
                       ),
                       const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: cityController,
-                              maxLength: 40,
-                              decoration: _inputDecoration('Cidade*'),
-                              validator:
-                                  (v) => _validateCidadeBairro(v, 'Cidade'),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextFormField(
-                              controller: neighborhoodController,
-                              maxLength: 40,
-                              decoration: _inputDecoration('Bairro*'),
-                              validator:
-                                  (v) => _validateCidadeBairro(v, 'Bairro'),
-                            ),
-                          ),
-                        ],
+                      TextFormField(
+                        controller: stateController,
+                        maxLength: 2,
+                        textCapitalization: TextCapitalization.characters,
+                        inputFormatters: [UpperCaseTextFormatter()],
+                        decoration: _inputDecoration('UF*'),
+                        validator: _validateUF,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: cityController,
+                        maxLength: 40,
+                        decoration: _inputDecoration('Cidade*'),
+                        validator: (v) => _validateCidadeBairro(v, 'Cidade'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: neighborhoodController,
+                        maxLength: 40,
+                        decoration: _inputDecoration('Bairro*'),
+                        validator: (v) => _validateCidadeBairro(v, 'Bairro'),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: streetController,
                         maxLength: 60,
-                        decoration: _inputDecoration('Endereço*'),
+                        decoration: _inputDecoration('Logradouro*'),
                         validator: _validateStreet,
                       ),
                       const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: numberController,
-                              maxLength: 6,
-                              decoration: _inputDecoration('Número*'),
-                              validator: _validateNumber,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextFormField(
-                              controller: complementController,
-                              maxLength: 60,
-                              decoration: _inputDecoration('Complemento'),
-                            ),
-                          ),
-                        ],
+                      TextFormField(
+                        controller: numberController,
+                        maxLength: 6,
+                        decoration: _inputDecoration('Número*'),
+                        validator: _validateNumber,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: complementController,
+                        maxLength: 60,
+                        decoration: _inputDecoration('Complemento'),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
